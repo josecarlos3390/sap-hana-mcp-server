@@ -50,6 +50,7 @@
   "pkg": {
     "scripts": [
       "hana-mcp-server.js",
+      "scripts/license-menu.js",
       "src/**/*.js",
       "node_modules/axios/dist/node/axios.cjs"
     ],

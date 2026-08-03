@@ -69,7 +69,10 @@ Copy-Relative '.env.example' '.env.example'
 Copy-Relative 'mcp.json.example' 'mcp.json.example'
 Copy-Relative 'README-CLIENTE.md' 'README-CLIENTE.md'
 Copy-Relative 'docs\distribucion-repo-README.md' 'README.md'
-Copy-Relative 'scripts\license-menu.js' 'scripts\license-menu.js'
+# license-menu.js is bundled inside the executable snapshot (see package.json pkg.scripts)
+# and is invoked via "hana-mcp-server.exe --license-menu", so we do not ship it as a
+# separate filesystem file here. Updater scripts remain plain files because the OS
+# executes them directly.
 Copy-Relative 'scripts\update-client.ps1' 'scripts\update-client.ps1'
 
 # Generate license-menu launchers next to the .exe so the client can open the
