@@ -90,27 +90,27 @@ $startPs1 = @"
 # Launch HANA MCP Server
 `$env:NODE_ENV = "production"
 node "`$PSScriptRoot\hana-mcp-server.js"
-"@@
+"@
 Set-Content -Path (Join-Path $outPath "start.ps1") -Value $startPs1
 
 $startBat = @"
 @ echo off
 set NODE_ENV=production
 node "%~dp0\hana-mcp-server.js"
-"@@
+"@
 Set-Content -Path (Join-Path $outPath "start.bat") -Value $startBat
 
 # License menu launchers
 $licenseMenuPs1 = @"
 # Launch HANA MCP License Menu
 node "`$PSScriptRoot\scripts\license-menu.js"
-"@@
+"@
 Set-Content -Path (Join-Path $outPath "license-menu.ps1") -Value $licenseMenuPs1
 
 $licenseMenuBat = @"
 @ echo off
 node "%~dp0\scripts\license-menu.js"
-"@@
+"@
 Set-Content -Path (Join-Path $outPath "license-menu.bat") -Value $licenseMenuBat
 
 # Sanity checks
