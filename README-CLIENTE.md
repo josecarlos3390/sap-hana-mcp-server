@@ -242,6 +242,24 @@ plan: <plan-asignado>
 features: ["hana", "knowledge-base", ...]
 ```
 
+## Diagnósticos del servidor SUSE (Service Layer / HANA)
+
+Si el servidor SAP Business One Service Layer y/o HANA corren en un host SUSE, el MCP puede leer logs y configuración vía SSH usando las herramientas:
+
+- `hana_suse_read_logs` — lee `/var/log/messages`, `/var/log/warn`, procesos `httpd`, logs de error del Service Layer y traces del `indexserver` de HANA. Acepta `lines`, `service_layer` y `hana` (todo opcional).
+- `hana_suse_read_config` — lee el archivo `/usr/sap/SAPBusinessOne/ServiceLayer/conf/httpd-b1s-lb-member-common.conf` (objetivo de la KBA 3733425).
+- `hana_suse_check_service_layer` — recupera versión, parches, configuración y estado de `httpd` del Service Layer.
+
+Requiere definir en el `.env` o en la configuración del agente:
+
+```env
+SUSE_HOST=<host-suse>
+SUSE_USER=<usuario-ssh>
+SUSE_PASSWORD=<contraseña-ssh>
+```
+
+Estas herramientas son **solo lectura** y usan un catálogo fijo de comandos SSH; no ejecutan comandos arbitrarios.
+
 ## Actualizaciones
 
 El MCP **nunca** se actualiza solo. Cuando haya una nueva versión disponible, verás una advertencia al iniciar o puedes consultarla con la tool `hana_check_for_updates`.
@@ -272,6 +290,15 @@ HANA_KB_SYNC_INTERVAL_HOURS=24
 El MCP descargará automáticamente los casos en `docs/kb/remote/` y los incluirá en las búsquedas.
 
 También podés forzar una sincronización manual reiniciando el servidor.
+
+## Captura de notas SAP y casos de diagnóstico
+
+El MCP incluye herramientas para guardar conocimiento directamente en la KB local:
+
+- `hana_fetch_sap_note` — guarda el contenido de una Nota SAP / KBA en la KB local (`docs/kb/user/`). Si le pasás el texto completo en el parámetro `content`, lo guarda directamente. Si no, intenta ejecutar el script Playwright `scripts/fetch-sap-note-playwright.py`, que requiere las variables de entorno `SAP_USER`, `SAP_PASS` y `SAP_NOTE`, y que Playwright esté instalado en el entorno virtual `venv-sap`.
+- `hana_create_diagnostic_case` — guarda una sesión de diagnóstico como caso de KB local, con campos como síntoma, causa, solución, evidencia, lecciones aprendidas y nota SAP relacionada. Requiere el título (`title`).
+
+Ambas tools necesitan una licencia activa con la característica `knowledge-base`.
 
 ## Contenido del paquete
 

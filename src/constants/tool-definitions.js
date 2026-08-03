@@ -841,6 +841,40 @@ const TOOLS = [
       required: ['confirm']
     }
   },
+  {
+    name: 'hana_fetch_sap_note',
+    title: 'Fetch SAP Note',
+    description: 'Save SAP Note content to the local knowledge base. If content is not provided, attempts to download the note via Playwright using SAP_USER, SAP_PASS and SAP_NOTE environment variables.',
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    inputSchema: {
+      type: 'object',
+      properties: {
+        note_number: { type: 'string', description: 'SAP Note / KBA number (required)' },
+        content: { type: 'string', description: 'Full text of the SAP Note. If omitted, the tool tries to run the Playwright fetcher script.' }
+      },
+      required: ['note_number']
+    }
+  },
+  {
+    name: 'hana_create_diagnostic_case',
+    title: 'Create diagnostic knowledge case',
+    description: 'Save a diagnostic session as a local Markdown knowledge base case. Convenience wrapper around hana_save_knowledge_case.',
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Case title (required)' },
+        symptom: { type: 'string', description: 'Symptom description' },
+        cause: { type: 'string', description: 'Root cause' },
+        solution: { type: 'string', description: 'Solution applied' },
+        evidence: { type: 'string', description: 'Evidence such as log excerpts' },
+        scripts: { type: 'array', items: { type: 'string' }, description: 'Scripts or tools used' },
+        lessons: { type: 'string', description: 'Lessons learned' },
+        sap_note: { type: 'string', description: 'Related SAP note / KBA number' }
+      },
+      required: ['title']
+    }
+  },
   // Health & monitoring tools (0.3.2)
   {
     name: 'hana_health_check',
@@ -893,6 +927,73 @@ const TOOLS = [
       },
       required: []
     }
+  },
+
+  // ─── SUSE server diagnostic tools ──────────────────────────────────────────
+
+  {
+    name: 'hana_suse_read_logs',
+    title: 'Read SUSE server logs',
+    description:
+      'Connect via SSH to the SUSE server and read /var/log/messages, /var/log/warn, httpd processes, SAP Business One Service Layer error logs and HANA indexserver traces. Requires SUSE_HOST, SUSE_USER and SUSE_PASSWORD env vars.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      type: 'object',
+      properties: {
+        lines: {
+          type: 'number',
+          description: 'Number of lines to tail from each log file (default 50, max 10000)'
+        },
+        service_layer: {
+          type: 'boolean',
+          description: 'Include Service Layer error log sections (default true)'
+        },
+        hana: {
+          type: 'boolean',
+          description: 'Include HANA indexserver trace sections (default true)'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'hana_suse_read_config',
+    title: 'Read SUSE Service Layer prefork config',
+    description:
+      'Read the Service Layer prefork configuration file targeted by KBA 3733425 (/usr/sap/SAPBusinessOne/ServiceLayer/conf/httpd-b1s-lb-member-common.conf). Requires SUSE_HOST, SUSE_USER and SUSE_PASSWORD env vars.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: []
+    }
+  },
+  {
+    name: 'hana_suse_check_service_layer',
+    title: 'Check Service Layer version and status',
+    description:
+      'Gather SAP Business One Service Layer version, patch, configuration and httpd module information from the SUSE server via SSH. Requires SUSE_HOST, SUSE_USER and SUSE_PASSWORD env vars.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    inputSchema: {
+      type: 'object',
+      properties: {},
+      required: []
+    }
   }
 ];
 
@@ -913,9 +1014,10 @@ const TOOL_CATEGORIES = {
     'hana_get_expensive_queries', 'hana_get_dependencies', 'hana_get_partition_info',
     'hana_list_sequences'
   ],
-  KNOWLEDGE_BASE: ['hana_save_knowledge_case', 'hana_read_kb_case', 'hana_search_knowledge_base', 'hana_generate_kb_index'],
+  KNOWLEDGE_BASE: ['hana_save_knowledge_case', 'hana_read_kb_case', 'hana_search_knowledge_base', 'hana_generate_kb_index', 'hana_fetch_sap_note', 'hana_create_diagnostic_case'],
   LICENSING: ['hana_show_license_info', 'hana_check_for_updates', 'hana_apply_update'],
-  HEALTH: ['hana_health_check', 'hana_memory_monitor', 'hana_realtime_performance']
+  HEALTH: ['hana_health_check', 'hana_memory_monitor', 'hana_realtime_performance'],
+  SUSE: ['hana_suse_read_logs', 'hana_suse_read_config', 'hana_suse_check_service_layer']
 };
 
 // Get tool by name

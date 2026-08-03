@@ -13,6 +13,8 @@ const QueryTools = require('./query-tools');
 const DiscoveryTools = require('./discovery-tools');
 const KBTools = require('./kb-tools');
 const HealthTools = require('./health-tools');
+const SuseTools = require('./suse-tools');
+const SapNoteTools = require('./sap-note-tools');
 const UpdateChecker = require('../licensing/update-checker');
 const licenseManager = require('../licensing/license-manager');
 const telemetry = require('../telemetry/telemetry-client');
@@ -64,10 +66,17 @@ const TOOL_IMPLEMENTATIONS = {
   hana_show_license_info:        KBTools.showLicenseInfo,
   hana_check_for_updates:        UpdateChecker.checkForUpdates,
   hana_apply_update:             UpdateChecker.applyUpdate,
+  // SAP Note & diagnostic case capture tools
+  hana_fetch_sap_note:           SapNoteTools.hanaFetchSapNote,
+  hana_create_diagnostic_case:   SapNoteTools.hanaCreateDiagnosticCase,
   // Health & monitoring tools (0.3.2)
   hana_health_check:             HealthTools.healthCheck,
   hana_memory_monitor:           HealthTools.memoryMonitor,
-  hana_realtime_performance:     HealthTools.realtimePerformance
+  hana_realtime_performance:     HealthTools.realtimePerformance,
+  // SUSE server diagnostic tools
+  hana_suse_read_logs:           SuseTools.hanaSuseReadLogs,
+  hana_suse_read_config:         SuseTools.hanaSuseReadConfig,
+  hana_suse_check_service_layer: SuseTools.hanaSuseCheckServiceLayer
 };
 
 /**

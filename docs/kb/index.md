@@ -1,6 +1,6 @@
 # Base de conocimiento
 
-Última actualización: 2026-08-03T14:32:22.459Z
+Última actualización: 2026-08-03T15:04:30.020Z
 
 Total de casos: 10 (10 incluidos, 0 del usuario, 0 remotos)
 
