@@ -40,7 +40,7 @@ Este comando:
 1. Empaqueta `hana-mcp-server.js` y todo el código en un solo `.exe` con `pkg`.
 2. Copia los assets necesarios: KB local, clave pública, plantillas, lanzadores.
 3. Incluye el driver nativo `@sap/hana-client` para que funcione sin Node.js.
-4. Genera los lanzadores `license-menu.bat` y `license-menu.ps1`.
+4. Genera los lanzadores `license-menu.bat`, `license-menu.ps1`, `first-run.bat` y `first-run.ps1`.
 5. Crea el ZIP final en:
    ```
    dist\hana-mcp-server-v<version>-win-x64.zip
@@ -81,6 +81,8 @@ hana-mcp-server-exe/
 ├── README-CLIENTE.md            # Guía del cliente
 ├── LICENSE
 ├── start.bat                    # Lanzador del servidor
+├── first-run.bat                # Asistente de configuración inicial
+├── first-run.ps1
 ├── license-menu.bat             # Menú de licencias (doble clic)
 ├── license-menu.ps1
 └── scripts/
@@ -109,12 +111,10 @@ El artefacto final es el ZIP. Se puede entregar por:
    ```
    C:\hana-mcp-client\
    ```
-2. Ejecutar `license-menu.bat` y seleccionar **5. Configurar conexión a HANA (asistente)**. Esto crea el `.env` y el archivo de configuración para el agente elegido (Claude Desktop, Kimi Code, VS Code u OpenCode).
-3. En el mismo menú, seleccionar **1. Ver mi Hardware ID** y enviar el HWID al vendor.
-4. El vendor genera la licencia (o voucher) en el backend.
-5. El cliente selecciona **2. Activar Licencia** en el menú e ingresa la clave o canjea el voucher.
-6. Copiar el archivo de configuración generado (`claude-desktop-config.json`, `kimi-code-config.json`, etc.) a la ubicación correspondiente del agente.
-7. Reiniciar el agente de IA.
+2. Ejecutar **`first-run.bat`** para abrir el asistente de configuración inicial. Esto verifica requisitos, crea el `.env`, muestra el Hardware ID, permite canjear un voucher o activar una licencia directa, y genera el archivo de configuración para el agente elegido (Claude Desktop, Kimi Code, VS Code u OpenCode).
+3. Si no se activó la licencia en el paso anterior, enviar el Hardware ID al vendor y esperar el voucher o licencia; luego activarla desde `license-menu.bat` → **2. Activar Licencia**.
+4. Copiar el archivo de configuración generado (`claude-desktop-config.json`, `kimi-code-config.json`, etc.) a la ubicación correspondiente del agente.
+5. Reiniciar el agente de IA.
 
 > El MCP implementa el protocolo MCP sobre stdio, por lo que es compatible con cualquier cliente MCP. La configuración es la misma en todos; solo cambia el formato del archivo donde se pega.
 
@@ -193,7 +193,7 @@ Si se agregan casos a `docs/kb/cases/` en el repo, regenerar el ZIP con `npm run
 
 - [ ] `npm test` pasa sin errores.
 - [ ] `npm run build:exe` genera el ZIP.
-- [ ] El ZIP contiene `license-menu.bat` y `license-menu.ps1`.
+- [ ] El ZIP contiene `license-menu.bat`, `license-menu.ps1`, `first-run.bat` y `first-run.ps1`.
 - [ ] El ZIP contiene `docs/kb/bundled/` con los casos esperados.
 - [ ] El ZIP contiene `config/` con las plantillas de agentes.
 - [ ] El ZIP contiene `scripts/check-requirements.js` y `scripts/install-requirements.js`.

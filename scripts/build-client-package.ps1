@@ -131,6 +131,19 @@ node "%~dp0\scripts\license-menu.js"
 "@
 Set-Content -Path (Join-Path $outPath "license-menu.bat") -Value $licenseMenuBat
 
+# First-run wizard launchers
+$firstRunPs1 = @"
+# Launch HANA MCP first-run configuration wizard
+node "`$PSScriptRoot\scripts\license-menu.js" --first-run
+"@
+Set-Content -Path (Join-Path $outPath "first-run.ps1") -Value $firstRunPs1
+
+$firstRunBat = @"
+@ echo off
+node "%~dp0\scripts\license-menu.js" --first-run
+"@
+Set-Content -Path (Join-Path $outPath "first-run.bat") -Value $firstRunBat
+
 # Sanity checks
 $prohibited = @(
     "private-key.pem",

@@ -30,6 +30,7 @@ const licenseArgs = new Set([
   '--activate',
   '--license-info',
   '--transfer',
+  '--first-run',
   '-h',
   '-r',
   '-a',

@@ -78,31 +78,34 @@ Copy-Relative 'scripts\check-requirements.js' 'scripts\check-requirements.js'
 Copy-Relative 'scripts\install-requirements.js' 'scripts\install-requirements.js'
 Copy-Relative 'scripts\update-client.ps1' 'scripts\update-client.ps1'
 
-# Generate license-menu launchers next to the .exe so the client can open the
-# license menu with a double click without needing Node.js installed.
-$batPath = Join-Path $outDir 'license-menu.bat'
-@'
+# Generate launchers next to the .exe so the client can open the license menu
+# or the first-run wizard with a double click without needing Node.js installed.
+function Write-Launcher($name, $arg) {
+  $bat = Join-Path $outDir "$name.bat"
+  @"
 @echo off
-REM Lanzador del menu de licencias para el paquete ejecutable.
-REM Se ubica junto a hana-mcp-server.exe.
+REM Lanzador de $name para el paquete ejecutable.
 
 cd /d "%~dp0"
-hana-mcp-server.exe --license-menu
+hana-mcp-server.exe $arg
 if errorlevel 1 pause
-'@ | Set-Content -Path $batPath -Encoding ASCII -NoNewline
+"@ | Set-Content -Path $bat -Encoding ASCII -NoNewline
 
-$ps1Path = Join-Path $outDir 'license-menu.ps1'
-@'
+  $ps1 = Join-Path $outDir "$name.ps1"
+  @"
 #!/usr/bin/env pwsh
-# Lanzador del menu de licencias para el paquete ejecutable.
-# Se ubica junto a hana-mcp-server.exe.
+# Lanzador de $name para el paquete ejecutable.
 
-$ErrorActionPreference = 'Stop'
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$exePath = Join-Path $scriptDir 'hana-mcp-server.exe'
+`$ErrorActionPreference = 'Stop'
+`$scriptDir = Split-Path -Parent `$MyInvocation.MyCommand.Path
+`$exePath = Join-Path `$scriptDir 'hana-mcp-server.exe'
 
-& $exePath --license-menu
-'@ | Set-Content -Path $ps1Path -Encoding UTF8 -NoNewline
+& `$exePath $arg
+"@ | Set-Content -Path $ps1 -Encoding UTF8 -NoNewline
+}
+
+Write-Launcher 'license-menu' '--license-menu'
+Write-Launcher 'first-run' '--first-run'
 Copy-Relative 'scripts\update-client.sh' 'scripts\update-client.sh'
 Copy-Relative 'scripts\start.bat' 'start.bat'
 

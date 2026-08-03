@@ -426,6 +426,107 @@ async function askWithDefault(reader, question, defaultValue) {
   return answer.trim() || defaultValue;
 }
 
+function runExternalScript(scriptName) {
+  return new Promise((resolve) => {
+    const { spawn } = require('child_process');
+    const script = path.join(BASE_DIR, 'scripts', scriptName);
+    const cmd = process.pkg
+      ? path.join(BASE_DIR, 'hana-mcp-server.exe')
+      : process.execPath;
+    const args = process.pkg ? [`--${scriptName.replace(/\.js$/, '')}`] : [script];
+    const child = spawn(cmd, args, {
+      stdio: 'inherit',
+      cwd: BASE_DIR,
+      shell: false
+    });
+    child.on('close', resolve);
+  });
+}
+
+async function runFirstRunWizard(reader) {
+  clearConsole();
+  printHeader();
+  console.log('--- Configuración inicial guiada ---');
+  console.log('');
+  console.log('Este asistente te ayudará a configurar el MCP paso a paso.');
+  await reader.ask('\nPresiona Enter para continuar...');
+
+  // 1. Check requirements
+  clearConsole();
+  printHeader();
+  console.log('Paso 1 de 5: Verificando requisitos...\n');
+  await runExternalScript('check-requirements.js');
+  await reader.ask('\nPresiona Enter para continuar...');
+
+  // 2. Configure .env if missing
+  const envPath = path.join(BASE_DIR, '.env');
+  if (!fs.existsSync(envPath)) {
+    clearConsole();
+    printHeader();
+    console.log('Paso 2 de 5: Configuración de HANA\n');
+    await runSetupWizard(reader);
+  } else {
+    clearConsole();
+    printHeader();
+    console.log('Paso 2 de 5: Archivo .env ya existe. Saltando configuración de HANA.\n');
+    await reader.ask('Presiona Enter para continuar...');
+  }
+
+  // 3. Show Hardware ID
+  clearConsole();
+  printHeader();
+  console.log('Paso 3 de 5: Tu Hardware ID\n');
+  const hwid = getHardwareId();
+  console.log(hwid);
+  console.log('\nEnvía este código a tu proveedor para solicitar la licencia.');
+  const copied = await copyToClipboard(hwid);
+  if (copied) {
+    console.log('(El Hardware ID se ha copiado al portapapeles)');
+  }
+  await reader.ask('\nPresiona Enter para continuar...');
+
+  // 4. Activate license if missing
+  const licensePath = getLicenseFilePath();
+  const hasLicenseKey = process.env.HANA_LICENSE_KEY;
+  if (!hasLicenseKey && !fs.existsSync(licensePath)) {
+    clearConsole();
+    printHeader();
+    console.log('Paso 4 de 5: Activar licencia\n');
+    const activate = await reader.ask('¿Querés activar una licencia ahora? (s/n): ');
+    if (activate.toLowerCase().startsWith('s')) {
+      await activateLicenseMenu(reader);
+    }
+  } else {
+    clearConsole();
+    printHeader();
+    console.log('Paso 4 de 5: Licencia ya detectada. Saltando activación.\n');
+    await reader.ask('Presiona Enter para continuar...');
+  }
+
+  // 5. Optional requirements
+  clearConsole();
+  printHeader();
+  console.log('Paso 5 de 5: Requisitos opcionales\n');
+  const install = await reader.ask('¿Querés instalar Playwright para descarga automática de SAP Notes? (s/n): ');
+  if (install.toLowerCase().startsWith('s')) {
+    await runExternalScript('install-requirements.js');
+  }
+
+  // Summary
+  clearConsole();
+  printHeader();
+  console.log('--- Configuración inicial finalizada ---\n');
+  console.log('Resumen:');
+  console.log(`  .env:          ${fs.existsSync(envPath) ? '✅' : '❌'}`);
+  console.log(`  Licencia:      ${(hasLicenseKey || fs.existsSync(licensePath)) ? '✅' : '❌'}`);
+  console.log(`  Hardware ID:   ${getHardwareId()}`);
+  console.log('\nPara usar el MCP:');
+  console.log('  1. Copiar el archivo de configuración de tu agente (config/*.json.example).');
+  console.log('  2. Reiniciar tu agente de IA.');
+  console.log('\nPara gestionar la licencia más tarde, ejecutar license-menu.bat.');
+  await reader.ask('\nPresiona Enter para volver al menú...');
+}
+
 async function runRequirementsMenu(reader) {
   let inSubmenu = true;
   while (inSubmenu) {
@@ -441,38 +542,14 @@ async function runRequirementsMenu(reader) {
     const choice = await reader.ask('Selecciona una opción: ');
 
     switch (choice) {
-      case '1': {
-        const { spawn } = require('child_process');
-        const script = path.join(BASE_DIR, 'scripts', 'check-requirements.js');
-        const cmd = process.pkg
-          ? path.join(BASE_DIR, 'hana-mcp-server.exe')
-          : process.execPath;
-        const args = process.pkg ? ['--check-requirements'] : [script];
-        const child = spawn(cmd, args, {
-          stdio: 'inherit',
-          cwd: BASE_DIR,
-          shell: false
-        });
-        await new Promise((resolve) => child.on('close', resolve));
+      case '1':
+        await runExternalScript('check-requirements.js');
         await reader.ask('\nPresiona Enter para volver al menú...');
         break;
-      }
-      case '2': {
-        const { spawn } = require('child_process');
-        const script = path.join(BASE_DIR, 'scripts', 'install-requirements.js');
-        const cmd = process.pkg
-          ? path.join(BASE_DIR, 'hana-mcp-server.exe')
-          : process.execPath;
-        const args = process.pkg ? ['--install-requirements'] : [script];
-        const child = spawn(cmd, args, {
-          stdio: 'inherit',
-          cwd: BASE_DIR,
-          shell: false
-        });
-        await new Promise((resolve) => child.on('close', resolve));
+      case '2':
+        await runExternalScript('install-requirements.js');
         await reader.ask('\nPresiona Enter para volver al menú...');
         break;
-      }
       case '0':
       case '':
         inSubmenu = false;
@@ -619,6 +696,9 @@ function parseCliArgs() {
       case '-i':
         result.licenseInfo = true;
         break;
+      case '--first-run':
+        result.firstRun = true;
+        break;
       case '--help':
         result.help = true;
         break;
@@ -638,6 +718,7 @@ async function runCliMode() {
     console.log('  --redeem <voucher>, -r   Canjear un voucher');
     console.log('  --activate <key>, -a     Activar una licencia directa');
     console.log('  --license-info, -i       Ver información de la licencia guardada');
+    console.log('  --first-run              Ejecutar la configuración inicial guiada');
     console.log('  --hwid <hwid>            HWID a usar (solo con --redeem, default: HWID actual)');
     console.log('  --help                   Mostrar esta ayuda');
     console.log('');
@@ -764,6 +845,13 @@ async function runCliMode() {
     return;
   }
 
+  if (args.firstRun) {
+    const reader = await createInputReader();
+    await runFirstRunWizard(reader);
+    reader.close();
+    return;
+  }
+
   // No CLI args matched; fall through to interactive menu
   return false;
 }
@@ -780,6 +868,7 @@ async function mainMenu() {
   while (running) {
     clearConsole();
     printHeader();
+    console.log('0. Configuración inicial guiada (first-run)');
     console.log('1. Ver mi Hardware ID');
     console.log('2. Activar Licencia');
     console.log('3. Transferir Licencia');
@@ -795,6 +884,9 @@ async function mainMenu() {
     const choice = await reader.ask('Selecciona una opción: ');
 
     switch (choice) {
+      case '0':
+        await runFirstRunWizard(reader);
+        break;
       case '1':
         await showHardwareId(reader);
         break;

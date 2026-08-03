@@ -17,9 +17,9 @@ Este paquete contiene el Model Context Protocol (MCP) server para SAP HANA y SAP
    C:\hana-mcp-client\
    ```
 
-2. Abrir el menú de licencias (`license-menu.bat`) y seleccionar **5. Configurar conexión a HANA (asistente)** para crear automáticamente el `.env` y el archivo de configuración para tu agente de IA.
+2. Ejecutar **`first-run.bat`** (configuración inicial guiada). Esto verifica requisitos, muestra tu Hardware ID, crea el `.env`, activa la licencia si tenés un voucher o clave, y genera el archivo de configuración para tu agente de IA.
 
-3. Activar la licencia con la opción **2. Activar Licencia** → **Canjear voucher** (o **Activar licencia directa** si el vendor te entregó una clave).
+3. Si no activaste la licencia en el paso anterior, abrir `license-menu.bat` y seleccionar **2. Activar Licencia** → **Canjear voucher** (o **Activar licencia directa** si el vendor te entregó una clave).
 
 4. Copiar el archivo de configuración generado para tu agente (Claude Desktop, Kimi Code, VS Code u OpenCode) en la ubicación correspondiente.
 
@@ -27,19 +27,23 @@ Este paquete contiene el Model Context Protocol (MCP) server para SAP HANA y SAP
 
 > Si preferís configurar manualmente, ver la sección [Configuración manual por agente](#configuración-manual-por-agente) más abajo.
 
-## Configuración con el asistente
+## Configuración inicial guiada (`first-run.bat`)
 
-El menú de licencias incluye un asistente interactivo (opción **5**) que pregunta:
+La primera vez que instalás el paquete, ejecutá `first-run.bat`. El asistente guía en 5 pasos:
 
-- Host, puerto, usuario, contraseña y schema de SAP HANA.
-- Tipo de conexión (`auto`, `single_container`, `mdc_tenant`, `mdc_system`).
-- Si usar SSL/encriptación/validación de certificado.
-- Qué agente de IA vas a usar.
+1. **Verificar requisitos** — Node.js (solo source), `.env`, licencia, credenciales SUSE SSH y Python + Playwright.
+2. **Crear `.env`** si no existe, preguntando host, puerto, usuario, contraseña y schema de SAP HANA.
+3. **Mostrar Hardware ID** para que lo enviés al vendor y solicites la licencia.
+4. **Activar licencia** canjeando un voucher o ingresando una clave directa.
+5. **Instalar requisitos opcionales** (Playwright + Chromium para descarga automática de SAP Notes).
 
 Al finalizar genera:
 
 - `.env` en la carpeta del MCP.
+- `.hana-license` con la licencia activa.
 - Un archivo JSON de ejemplo listo para copiar en tu agente (`claude-desktop-config.json`, `kimi-code-config.json`, `vscode-mcp-config.json` u `opencode-config.json`).
+
+> Si preferís hacerlo paso a paso, podés usar `license-menu.bat` en lugar de `first-run.bat`.
 
 ## Compatibilidad con agentes
 
@@ -302,7 +306,7 @@ Ambas tools necesitan una licencia activa con la característica `knowledge-base
 
 ## Verificación de requisitos
 
-Antes de usar el MCP, ejecutá la verificación de requisitos:
+La forma más sencilla de verificar el entorno es ejecutar `first-run.bat` al inicio. También podés ejecutar manualmente:
 
 ```bash
 hana-mcp-server.exe --check-requirements
@@ -328,7 +332,7 @@ Para habilitar la descarga automática de SAP Notes:
 hana-mcp-server.exe --install-requirements
 ```
 
-Esto instala Playwright y el navegador Chromium. Requiere Python 3 previamente instalado.
+O desde `first-run.bat` / menú de licencias seleccionando **6. Verificar/instalar requisitos**. Requiere Python 3 previamente instalado.
 
 ## Contenido del paquete
 
@@ -342,6 +346,7 @@ Esto instala Playwright y el navegador Chromium. Requiere Python 3 previamente i
 - `.hana-license` — archivo donde se guarda la licencia activa (se crea al activar).
 - `mcp.json.example` — plantilla de configuración MCP.
 - `start.bat` — lanzador del servidor MCP para Windows.
+- `first-run.bat` / `first-run.ps1` — lanzadores del asistente de configuración inicial.
 - `license-menu.bat` / `license-menu.ps1` — lanzadores del menú de licencias.
 - `scripts/update-client.ps1` / `update-client.sh` — helpers de actualización.
 - `node_modules/@sap/hana-client/` — driver nativo de SAP HANA necesario en runtime.
