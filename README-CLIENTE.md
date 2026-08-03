@@ -140,6 +140,21 @@ Esto descargará la nueva versión, preservará tu base de conocimiento local (`
 
 Si una actualización es marcada como **mandatoria** por el vendor, el MCP no arrancará hasta que la apliques.
 
+## Base de conocimiento remota
+
+Además de la KB local (`docs/kb/cases/`), el MCP puede sincronizar casos nuevos desde un servidor remoto. Esto permite que el proveedor publique diagnósticos y lecciones aprendidas sin que tengas que reinstalar el paquete.
+
+Para habilitarla, configurá en tu `.env`:
+
+```env
+HANA_KB_REMOTE_URL=https://licencias-mcp.onrender.com/api/kb
+HANA_KB_SYNC_INTERVAL_HOURS=24
+```
+
+El MCP descargará automáticamente los casos en `docs/kb/remote/` y los incluirá en las búsquedas.
+
+También podés forzar una sincronización manual reiniciando el servidor.
+
 ## Contenido del paquete
 
 - `hana-mcp-server.exe` — MCP empaquetado con Node.js.
