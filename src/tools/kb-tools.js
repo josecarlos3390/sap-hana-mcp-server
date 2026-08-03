@@ -5,8 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const knowledgeBase = require('../knowledge-base');
-const { CASES_DIR } = require('../knowledge-base/case-writer');
-const { REMOTE_DIR } = require('../knowledge-base/remote-sync');
+const { USER_DIR, BUNDLED_DIR, REMOTE_DIR } = require('../knowledge-base/case-writer');
 const licenseManager = require('../licensing/license-manager');
 
 const OFFLINE_MODE_NOTICE = 'Running in offline mode (license expired). Knowledge base is read-only.';
@@ -71,20 +70,22 @@ async function readKnowledgeCase(args) {
     throw new Error('Missing required field: filename');
   }
 
-  // Search local and remote directories for the requested case
+  // Search bundled, user and remote directories for the requested case
   const candidates = [
-    path.join(CASES_DIR, filename),
-    path.join(REMOTE_DIR, filename)
+    { dir: BUNDLED_DIR, source: 'bundled' },
+    { dir: USER_DIR, source: 'user' },
+    { dir: REMOTE_DIR, source: 'remote' }
   ];
 
-  for (const filepath of candidates) {
+  for (const { dir, source } of candidates) {
+    const filepath = path.join(dir, filename);
     if (fs.existsSync(filepath) && fs.statSync(filepath).isFile()) {
       const content = fs.readFileSync(filepath, 'utf8');
       return {
         success: true,
         filename,
         filepath,
-        source: path.dirname(filepath) === CASES_DIR ? 'local' : 'remote',
+        source,
         content,
         ...getLicenseModeMeta()
       };

@@ -1,13 +1,16 @@
 /**
  * Knowledge base case writer.
- * Stores resolved incidents as Markdown files under docs/kb/cases.
+ * Stores user-generated incidents as Markdown files under docs/kb/user.
+ * Vendor-shipped cases live in docs/kb/bundled and remote cases in docs/kb/remote.
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const KB_DIR = path.join(process.cwd(), 'docs', 'kb');
-const CASES_DIR = path.join(KB_DIR, 'cases');
+const USER_DIR = path.join(KB_DIR, 'user');
+const BUNDLED_DIR = path.join(KB_DIR, 'bundled');
+const REMOTE_DIR = path.join(KB_DIR, 'remote');
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {
@@ -79,12 +82,12 @@ function saveCase({
   lessons = '',
   ...meta
 }) {
-  ensureDir(CASES_DIR);
+  ensureDir(USER_DIR);
 
   const date = formatDate();
   const slug = slugify(title || 'untitled-case');
   const filename = `${date}-${slug}.md`;
-  const filepath = path.join(CASES_DIR, filename);
+  const filepath = path.join(USER_DIR, filename);
 
   const frontMatter = buildFrontMatter({ ...meta, date });
 
@@ -117,4 +120,4 @@ function saveCase({
   return { filepath, filename };
 }
 
-module.exports = { saveCase, CASES_DIR, KB_DIR };
+module.exports = { saveCase, KB_DIR, USER_DIR, BUNDLED_DIR, REMOTE_DIR };

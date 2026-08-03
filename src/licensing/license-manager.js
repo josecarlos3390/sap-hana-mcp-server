@@ -32,10 +32,12 @@ class LicenseManager {
   }
 
   loadPublicKey() {
+    // Allow tests to override the public key path; production always uses the bundled key.
+    const keyPath = process.env.HANA_LICENSE_PUBLIC_KEY_PATH || PUBLIC_KEY_PATH;
     try {
-      this.publicKey = fs.readFileSync(PUBLIC_KEY_PATH, 'utf8');
+      this.publicKey = fs.readFileSync(keyPath, 'utf8');
     } catch (err) {
-      throw new Error(`License public key not found at ${PUBLIC_KEY_PATH}`);
+      throw new Error(`License public key not found at ${keyPath}`);
     }
   }
 

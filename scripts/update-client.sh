@@ -35,7 +35,8 @@ log "Install directory: $INSTALL_DIR"
 
 # Preserve local KB and config
 PRESERVE=(
-  "docs/kb/cases"
+  "docs/kb/user"
+  "docs/kb/remote"
   ".env"
   "mcp.json"
   ".hana-license"

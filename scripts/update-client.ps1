@@ -63,7 +63,8 @@ try {
 
     # Files and directories to preserve (do not overwrite)
     $preserve = @(
-        "docs\kb\cases",
+        "docs\kb\user",
+        "docs\kb\remote",
         ".env",
         "mcp.json",
         ".hana-license",

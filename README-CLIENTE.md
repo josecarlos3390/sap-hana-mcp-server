@@ -163,7 +163,9 @@ También podés forzar una sincronización manual reiniciando el servidor.
 ## Contenido del paquete
 
 - `hana-mcp-server.exe` — MCP empaquetado con Node.js.
-- `docs/kb/cases/` — base de conocimiento local.
+- `docs/kb/bundled/` — base de conocimiento incluida con el producto (se puede actualizar con nuevas versiones).
+- `docs/kb/user/` — casos que vos o tu equipo creen con el MCP (nunca se sobrescriben).
+- `docs/kb/remote/` — casos sincronizados desde el servidor remoto.
 - `docs/kb/index.md` — índice de la KB.
 - `public-key.pem` — clave pública para validar licencias.
 - `.env.example` — plantilla de configuración.

@@ -97,13 +97,15 @@ El servidor **nunca** se actualiza solo. Cuando haya una nueva versión, el vend
 }
 ```
 
-El proceso preserva tu base de conocimiento local (`docs/kb/cases/`) y tu configuración (`.env`, `.hana-license`, `mcp.json`).
+El proceso preserva tus casos propios (`docs/kb/user/`), los casos sincronizados desde la nube (`docs/kb/remote/`) y tu configuración (`.env`, `.hana-license`, `mcp.json`). Los casos incluidos con el producto (`docs/kb/bundled/`) sí se actualizan.
 
 ## 📁 Contenido del paquete
 
 - `hana-mcp-server.exe` — MCP empaquetado con Node.js.
 - `start.bat` — lanzador para Windows.
-- `docs/kb/cases/` — base de conocimiento local.
+- `docs/kb/bundled/` — base de conocimiento incluida con el producto.
+- `docs/kb/user/` — casos que crees vos (vacío al inicio).
+- `docs/kb/remote/` — casos sincronizados desde el servidor remoto.
 - `node_modules/@sap/hana-client/` — driver nativo de SAP HANA.
 - `public-key.pem` — clave pública para validar licencias.
 - `.env.example` — plantilla de configuración.

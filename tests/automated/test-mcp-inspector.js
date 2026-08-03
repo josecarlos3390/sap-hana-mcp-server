@@ -1,12 +1,44 @@
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const { spawn } = require('child_process');
 
 console.log('🔍 HANA MCP Server Inspector');
 console.log('============================\n');
 
 const serverScript = path.join(__dirname, '..', '..', 'hana-mcp-server.js');
+
+// Generate a temporary RSA key pair so the inspector test can run without a
+// real paid license. Production still validates against src/licensing/public-key.pem.
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hana-mcp-test-'));
+const testKeyPair = crypto.generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+});
+const publicKeyPath = path.join(tmpDir, 'public-key.pem');
+fs.writeFileSync(publicKeyPath, testKeyPair.publicKey);
+
+const { getHardwareId } = require('../../src/licensing/hardware-id');
+const testHwid = getHardwareId();
+
+const testToken = jwt.sign(
+  {
+    plan: 'test',
+    features: ['hana', 'knowledge-base'],
+    hwid: testHwid
+  },
+  testKeyPair.privateKey,
+  { algorithm: 'RS256', expiresIn: '1h' }
+);
+
 const serverEnv = {
   ...process.env,
+  HANA_LICENSE_KEY: process.env.HANA_LICENSE_KEY || testToken,
+  HANA_LICENSE_PUBLIC_KEY_PATH: process.env.HANA_LICENSE_PUBLIC_KEY_PATH || publicKeyPath,
+  HANA_LICENSE_CHECK_INTERVAL_HOURS: '9999',
   HANA_HOST: process.env.HANA_HOST || "your-hana-host.com",
   HANA_PORT: process.env.HANA_PORT || "443",
   HANA_USER: process.env.HANA_USER || "your-username",
@@ -135,11 +167,25 @@ async function runTests() {
 // Handle server exit
 server.on('close', (code) => {
   console.log(`\n🔚 Server closed with code ${code}`);
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch (_) {
+    // ignore cleanup errors
+  }
 });
 
 server.on('error', (error) => {
   console.error('❌ Server error:', error);
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch (_) {}
 });
 
 // Start tests
-runTests().catch(console.error); 
+runTests().catch((err) => {
+  console.error(err);
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch (_) {}
+  process.exit(1);
+});

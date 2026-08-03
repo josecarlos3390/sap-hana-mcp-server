@@ -17,7 +17,7 @@ const kbRemotePath = require.resolve(path.join(root, 'src', 'knowledge-base', 'r
 const kbToolsPath = require.resolve(path.join(root, 'src', 'tools', 'kb-tools.js'));
 const trPath = require.resolve(path.join(root, 'src', 'tools', 'index.js'));
 
-const testCaseDir = path.join(root, 'docs', 'kb', 'cases');
+const testCaseDir = path.join(root, 'docs', 'kb', 'user');
 const testCaseFile = path.join(testCaseDir, 'test-offline-case.md');
 
 function clearStack() {
@@ -63,7 +63,9 @@ function withExpiredLicense(fn) {
   require.cache[kbWriterPath] = {
     id: kbWriterPath,
     exports: {
-      CASES_DIR: testCaseDir,
+      USER_DIR: testCaseDir,
+      BUNDLED_DIR: path.join(root, 'docs', 'kb', 'bundled'),
+      REMOTE_DIR: path.join(root, 'docs', 'kb', 'remote'),
       KB_DIR: path.join(root, 'docs', 'kb'),
       saveCase: () => ({ filename: 'test-offline-case.md', filepath: testCaseFile })
     },

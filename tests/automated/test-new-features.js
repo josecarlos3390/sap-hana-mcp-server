@@ -4,10 +4,30 @@
  */
 
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const { spawn } = require('child_process');
+const { getHardwareId } = require('../../src/licensing/hardware-id');
 
 const serverScript = path.join(__dirname, '..', '..', 'hana-mcp-server.js');
 const projectRoot = path.join(__dirname, '..', '..');
+
+// Generate a temporary RSA key pair so tests can run without a real paid license.
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hana-mcp-test-'));
+const testKeyPair = crypto.generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+});
+const testPublicKeyPath = path.join(tmpDir, 'public-key.pem');
+fs.writeFileSync(testPublicKeyPath, testKeyPair.publicKey);
+const testToken = jwt.sign(
+  { plan: 'test', features: ['hana', 'knowledge-base'], hwid: getHardwareId() },
+  testKeyPair.privateKey,
+  { algorithm: 'RS256', expiresIn: '1h' }
+);
 
 let server;
 const pending = new Map();
@@ -19,6 +39,9 @@ function startServer() {
     cwd: projectRoot,
     env: {
       ...process.env,
+      HANA_LICENSE_KEY: testToken,
+      HANA_LICENSE_PUBLIC_KEY_PATH: testPublicKeyPath,
+      HANA_LICENSE_CHECK_INTERVAL_HOURS: '9999',
       HANA_HOST: 'test-host.example.com',
       HANA_PORT: '443',
       HANA_USER: 'testuser',
@@ -374,11 +397,20 @@ async function runTests() {
   }
 }
 
+function cleanup() {
+  try {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  } catch (_) {
+    // ignore cleanup errors
+  }
+}
+
 runTests().catch((err) => {
   console.error(err);
   if (server) {
     server.stdin.end();
     server.kill();
   }
+  cleanup();
   process.exit(1);
-});
+}).finally(cleanup);

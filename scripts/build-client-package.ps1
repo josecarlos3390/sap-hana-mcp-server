@@ -60,7 +60,17 @@ if ($IncludeSource) {
 
     $docsOut = Join-Path $outPath "docs"
     New-Item -ItemType Directory -Path $docsOut | Out-Null
-    Copy-Item -Recurse (Join-Path $repoRoot "docs\kb") (Join-Path $docsOut "kb")
+    $kbOut = Join-Path $docsOut "kb"
+    New-Item -ItemType Directory -Path $kbOut | Out-Null
+    # Vendor-shipped cases (overwrite on updates)
+    Copy-Item -Recurse (Join-Path $repoRoot "docs\kb\bundled") (Join-Path $kbOut "bundled")
+    # Index of all cases
+    Copy-Item (Join-Path $repoRoot "docs\kb\index.md") (Join-Path $kbOut "index.md")
+    # User-created and remote-synced cases are preserved across updates
+    New-Item -ItemType Directory -Path (Join-Path $kbOut "user") | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $kbOut "remote") | Out-Null
+    # Marker so the updater knows this is a split KB layout
+    Set-Content -Path (Join-Path $kbOut ".split-layout") -Value "vendor=bundled user=user remote=remote" -Encoding UTF8
 
     # Copy updater scripts and license menu
     $scriptsOut = Join-Path $outPath "scripts"

@@ -62,7 +62,8 @@ function Copy-Relative($src, $dst) {
 }
 
 Copy-Relative 'src\licensing\public-key.pem' 'public-key.pem'
-Copy-Relative 'docs\kb' 'docs\kb'
+Copy-Relative 'docs\kb\bundled' 'docs\kb\bundled'
+Copy-Relative 'docs\kb\index.md' 'docs\kb\index.md'
 Copy-Relative 'LICENSE' 'LICENSE'
 Copy-Relative '.env.example' '.env.example'
 Copy-Relative 'mcp.json.example' 'mcp.json.example'

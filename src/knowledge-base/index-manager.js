@@ -6,8 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { CASES_DIR, KB_DIR } = require('./case-writer');
-const { REMOTE_DIR } = require('./remote-sync');
+const { KB_DIR, USER_DIR, BUNDLED_DIR, REMOTE_DIR } = require('./case-writer');
 
 function parseFrontMatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
@@ -84,16 +83,18 @@ function listCasesInDir(dir, sourceLabel) {
 }
 
 function listCases() {
-  const localCases = listCasesInDir(CASES_DIR, 'local');
+  const bundledCases = listCasesInDir(BUNDLED_DIR, 'bundled');
+  const userCases = listCasesInDir(USER_DIR, 'user');
   const remoteCases = listCasesInDir(REMOTE_DIR, 'remote');
-  return [...localCases, ...remoteCases].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return [...bundledCases, ...userCases, ...remoteCases].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
 function generateIndex() {
   const cases = listCases();
   const indexPath = path.join(KB_DIR, 'index.md');
 
-  const localCases = cases.filter(c => c.source === 'local');
+  const bundledCases = cases.filter(c => c.source === 'bundled');
+  const userCases = cases.filter(c => c.source === 'user');
   const remoteCases = cases.filter(c => c.source === 'remote');
 
   const lines = [
@@ -101,25 +102,39 @@ function generateIndex() {
     '',
     `Última actualización: ${new Date().toISOString()}`,
     '',
-    `Total de casos: ${cases.length} (${localCases.length} locales, ${remoteCases.length} remotos)`,
+    `Total de casos: ${cases.length} (${bundledCases.length} incluidos, ${userCases.length} del usuario, ${remoteCases.length} remotos)`,
     '',
-    '## Índice de casos locales',
+    '## Casos incluidos con el producto',
     ''
   ];
 
-  if (localCases.length === 0) {
-    lines.push('_No hay casos locales documentados aún._');
+  if (bundledCases.length === 0) {
+    lines.push('_No hay casos incluidos._');
   } else {
-    for (const c of localCases) {
+    for (const c of bundledCases) {
       const tags = Array.isArray(c.tags) && c.tags.length > 0 ? ` 🏷️ ${c.tags.join(', ')}` : '';
       const status = c.status ? ` [${c.status}]` : '';
       const severity = c.severity ? ` (${c.severity})` : '';
       const sapNote = c.sap_note ? ` — SAP Note: ${c.sap_note}` : '';
-      lines.push(`- **${c.date}** — [${c.title}](cases/${c.filename})${status}${severity}${sapNote}${tags}`);
+      lines.push(`- **${c.date}** — [${c.title}](bundled/${c.filename})${status}${severity}${sapNote}${tags}`);
     }
   }
 
-  lines.push('', '## Índice de casos remotos (de la nube)', '');
+  lines.push('', '## Casos creados por el usuario', '');
+
+  if (userCases.length === 0) {
+    lines.push('_No hay casos de usuario aún._');
+  } else {
+    for (const c of userCases) {
+      const tags = Array.isArray(c.tags) && c.tags.length > 0 ? ` 🏷️ ${c.tags.join(', ')}` : '';
+      const status = c.status ? ` [${c.status}]` : '';
+      const severity = c.severity ? ` (${c.severity})` : '';
+      const sapNote = c.sap_note ? ` — SAP Note: ${c.sap_note}` : '';
+      lines.push(`- **${c.date}** — [${c.title}](user/${c.filename})${status}${severity}${sapNote}${tags}`);
+    }
+  }
+
+  lines.push('', '## Casos remotos (de la nube)', '');
 
   if (remoteCases.length === 0) {
     lines.push('_No hay casos remotos sincronizados aún._');

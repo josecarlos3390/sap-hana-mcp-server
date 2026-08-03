@@ -190,12 +190,30 @@ Si se agregan casos a `docs/kb/cases/` en el repo, regenerar el ZIP con `npm run
 - [ ] El ZIP contiene `docs/kb/cases/` con los casos esperados.
 - [ ] No hay `private-key.pem` ni archivos del backend en el ZIP.
 - [ ] `src/licensing/public-key.pem` está actualizado y coincide con el backend.
+- [ ] `.env.example` **no contiene datos reales de ningún cliente** (usa valores ficticios como `hana.acmecorp.example`).
+- [ ] `docs/kb/remote/` no contiene casos de prueba basura.
 - [ ] `README-CLIENTE.md` refleja la versión actual y el flujo de licencias.
 - [ ] Se conoce la `license_key` o voucher a entregar al cliente.
 
 ---
 
-## 8. Archivos relacionados
+## 8. Estructura de la base de conocimiento
+
+La KB se divide en tres ubicaciones para separar lo que entrega el vendor, lo que crea el cliente y lo que se sincroniza de la nube:
+
+| Carpeta | Contenido | ¿Se preserva en actualizaciones? |
+|---|---|---|
+| `docs/kb/bundled/` | Casos incluidos con el producto (vendor). | ❌ Se sobrescribe con la nueva versión. |
+| `docs/kb/user/` | Casos que el cliente crea con `hana_save_knowledge_case`. | ✅ Se preserva siempre. |
+| `docs/kb/remote/` | Casos descargados desde `HANA_KB_REMOTE_URL`. | ✅ Se preserva (se sincroniza, no se borra). |
+
+### Sanitizar antes de build
+
+1. Revisar `.env.example` y reemplazar cualquier host, usuario, schema o nota SAP real por valores ficticios.
+2. Limpiar `docs/kb/remote/` de casos de prueba.
+3. Asegurar que los casos en `docs/kb/bundled/` no contengan credenciales ni nombres de cliente reales.
+
+## 9. Archivos relacionados
 
 - `scripts/build-exe.ps1` — script que genera el paquete.
 - `README-CLIENTE.md` — guía incluida dentro del ZIP.
