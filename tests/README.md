@@ -57,7 +57,7 @@ Coverage highlights:
 | Semantics | `HANA_SEMANTICS_PATH` file + `HANA_SEMANTICS_URL` HTTP mock |
 | MCP surface | Inspector + `test-new-features` (tools, resources, tasks, HTTP POST) |
 
-**Live DB:** `npm run test:live` runs **`test-all-tools.js`**, which discovers schema/table from the connected tenant (no fixed `DFKKOP` requirement) and checks **`resources/read`** for `hana:///schemas`, `hana:///schemas/{schema}`, and table URIs. **`hana-mcp-ui`** (`PORT`, `NODE_ENV`) is not run by `npm test`.
+**Live DB:** `npm run test:live` runs **`test-all-tools.js`**, which discovers schema/table from the connected tenant (no fixed `DFKKOP` requirement) and checks **`resources/read`** for `hana:///schemas`, `hana:///schemas/{schema}`, and table URIs.
 
 ### 2. Real HANA integration (all tools + resources)
 

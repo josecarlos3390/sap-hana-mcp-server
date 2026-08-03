@@ -1,9 +1,0 @@
-[build]
-builder = "nixpacks"
-root = "backend/license-server"
-
-[deploy]
-startCommand = "npm start"
-healthcheckPath = "/health"
-healthcheckTimeout = 100
-restartPolicyType = "on_failure"

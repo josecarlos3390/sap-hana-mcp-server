@@ -11,7 +11,7 @@ Este documento resume el esquema de licenciamiento, knowledge base remota, empaq
 │                        VENDOR (tú)                              │
 │  ┌─────────────────────┐      ┌─────────────────────────────┐  │
 │  │ License Server      │      │ CDN / Bucket                │  │
-│  │ (Railway + Postgres)│      │ (paquetes de actualización) │  │
+│  │ (Render + Postgres) │      │ (paquetes de actualización) │  │
 │  └─────────────────────┘      └─────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
                            │
@@ -29,7 +29,7 @@ Este documento resume el esquema de licenciamiento, knowledge base remota, empaq
 
 | Componente | Responsabilidad |
 |------------|-----------------|
-| `backend/license-server` | Valida licencias, emite JWT, administra clientes, suscripciones, facturación y releases. |
+| `sap-hana-mcp-license-server` (repo aparte) | Valida licencias, emite JWT, administra clientes, suscripciones, facturación y releases. |
 | `src/licensing/` (cliente) | Lee licencia, valida JWT con clave pública, obtiene hardware ID, consulta online. |
 | `src/knowledge-base/` (cliente) | Escribe casos locales, sincroniza KB remota, genera índice, busca. |
 | `scripts/build-client-package.ps1` | Genera carpeta de instalación y ZIP de distribución. |
@@ -39,29 +39,36 @@ Este documento resume el esquema de licenciamiento, knowledge base remota, empaq
 
 ## 2. Preparar el backend (una sola vez por producto)
 
-### 2.1 Reutilizar o copiar el license server
+### 2.1 Reutilizar o desplegar el license server
 
-- Copiar `backend/license-server/` al nuevo proyecto.
-- Si reutilizas el mismo backend, solo registra un nuevo producto en `mcp_products`.
+El backend de licencias vive en un proyecto separado (`licencias-mcp`). Para un nuevo MCP podés:
+
+- Reutilizar el mismo backend y registrar un nuevo producto en `mcp_products`.
+- Clonar el repo, generar nuevas claves y desplegar una instancia propia.
 
 ### 2.2 Generar o reutilizar claves RSA
+
+Desde el proyecto `sap-hana-mcp-license-server`:
 
 ```bash
 node scripts/generate-license-keys.js
 ```
 
 - `private-key.pem` → solo en el backend (variable de entorno `JWT_PRIVATE_KEY`).
-- `src/licensing/public-key.pem` → se empaqueta con el cliente.
+- `public-key.pem` → copiarlo al cliente en `src/licensing/public-key.pem`.
 
 ### 2.3 Desplegar el backend
 
-Opción A: Railway (recomendado)
-```powershell
-$env:RAILWAY_TOKEN="..."
-./scripts/deploy-license-server.ps1
+El backend se despliega manualmente en Render (o Railway) siguiendo la guía del proyecto `sap-hana-mcp-license-server`:
+
+```bash
+cd sap-hana-mcp-license-server
+npm install
+npm run db:init
+npm start
 ```
 
-Opción B: manual siguiendo `docs/license-server-portable-config.md`.
+También se puede usar la imagen/portable descrita en `docs/license-server-portable-config.md` del mismo proyecto.
 
 ### 2.4 Inicializar base de datos
 
@@ -191,8 +198,7 @@ hana-mcp-client/
 ### 4.3 Qué NUNCA entregar
 
 - `private-key.pem`
-- `backend/license-server/`
-- Scripts de generación de licencias/tokens.
+- Scripts de generación de licencias/tokens (viven en el proyecto del backend).
 - `.env` real del cliente.
 
 ---
@@ -257,8 +263,8 @@ curl -X POST https://tu-app.railway.app/admin/releases \
 
 ## 7. Checklist de replicación
 
-- [ ] Copiar `backend/license-server/` o reutilizar backend existente.
-- [ ] Generar o reutilizar par de claves RSA.
+- [ ] Reutilizar o desplegar el backend de licencias (`sap-hana-mcp-license-server`).
+- [ ] Generar o reutilizar par de claves RSA en el proyecto del backend.
 - [ ] Reemplazar `LICENSE` por una licencia propietaria/EULA y actualizar `package.json` (`license: "SEE LICENSE IN LICENSE"`).
 - [ ] Copiar `src/licensing/` y `src/knowledge-base/` al nuevo MCP.
 - [ ] Instalar dependencias: `jsonwebtoken`, `node-machine-id`, `dotenv`, `axios`.
@@ -287,6 +293,5 @@ curl -X POST https://tu-app.railway.app/admin/releases \
 
 ## 9. Archivos de referencia
 
-- `docs/license-server-portable-config.md` — guía de despliegue en Railway.
 - `docs/client-distribution.md` — qué entregar al cliente y cómo empaquetar.
-- `backend/license-server/README.md` — README del backend.
+- Proyecto `sap-hana-mcp-license-server` — backend de licencias, guía de despliegue y README.

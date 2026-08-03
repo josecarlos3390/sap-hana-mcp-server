@@ -45,8 +45,11 @@ Thumbs.db
 
 # Licensing / vendor-only scripts (do not ship to customers)
 private-key.pem
+backend/
 scripts/generate-license-keys.js
 scripts/generate-license-token.js
+scripts/deploy-license-server.ps1
+scripts/deploy-license-server.sh
 scripts/mock-cloud-server.js
 venv-sap/
 .hana-license

@@ -120,7 +120,8 @@ $prohibited = @(
     "scripts\generate-license-keys.js",
     "scripts\generate-license-token.js",
     "scripts\deploy-license-server.ps1",
-    "scripts\deploy-license-server.sh"
+    "scripts\deploy-license-server.sh",
+    "hana-mcp-ui"
 )
 
 foreach ($p in $prohibited) {

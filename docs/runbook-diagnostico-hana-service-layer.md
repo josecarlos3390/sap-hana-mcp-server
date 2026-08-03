@@ -300,20 +300,31 @@ npm install
 
 ## 7. Licenciamiento y monetización
 
-El MCP ahora incluye un sistema de licenciamiento local basado en **JWT firmados con RSA**.
+El MCP usa un servidor de licencias online (`sap-hana-mcp-license-server`) que emite claves cortas atadas al hardware ID. El legacy JWT firmado localmente ya no se utiliza para licencias nuevas.
 
 ### 7.1 Generar el par de claves (solo el vendor)
 
+Desde el proyecto `sap-hana-mcp-license-server`:
+
 ```powershell
+cd ..\sap-hana-mcp-license-server
 node scripts\generate-license-keys.js
 ```
 
 Esto crea:
 
-- `private-key.pem` — **secreto del vendor**, usado para firmar licencias. No distribuir.
-- `src/licensing/public-key.pem` — empaquetada con el MCP, usada para verificar licencias.
+- `private-key.pem` — **secreto del vendor**, usado por el backend para firmar licencias. No distribuir.
+- `public-key.pem` — copiarlo al cliente en `src/licensing/public-key.pem`.
 
 ### 7.2 Obtener el hardware ID del cliente
+
+El cliente lo obtiene desde el menú de licencias del `.exe`:
+
+```powershell
+hana-mcp-server.exe --show-hwid
+```
+
+O, si tiene Node.js:
 
 ```powershell
 node -e "console.log(require('./src/licensing/hardware-id').getHardwareId())"
@@ -321,14 +332,22 @@ node -e "console.log(require('./src/licensing/hardware-id').getHardwareId())"
 
 ### 7.3 Generar una licencia para el cliente
 
+Usar el endpoint de administración del backend:
+
 ```powershell
-node scripts\generate-license-token.js <hardware_id> [expiry_days]
+curl -X POST https://licencias-mcp.onrender.com/admin/licenses `
+  -H "Content-Type: application/json" `
+  -H "X-API-Key: <admin-api-key>" `
+  -d '{"hwid":"<hardware_id>","days":365,"product_code":"hana-b1","plan":"professional"}'
 ```
 
-Ejemplo:
+También se puede generar un voucher de un solo uso para que el cliente se active solo:
 
 ```powershell
-node scripts\generate-license-token.js a1b2c3... 365
+curl -X POST https://licencias-mcp.onrender.com/admin/vouchers `
+  -H "Content-Type: application/json" `
+  -H "X-API-Key: <admin-api-key>" `
+  -d '{"days":30,"count":1,"product_code":"hana-b1","plan":"professional"}'
 ```
 
 ### 7.4 Activar la licencia en el cliente
@@ -337,10 +356,10 @@ El cliente puede usar cualquiera de estas dos formas:
 
 1. Variable de entorno:
    ```powershell
-   $env:HANA_LICENSE_KEY="<token_jwt>"
+   $env:HANA_LICENSE_KEY="<license_key>"
    ```
 
-2. Archivo `.hana-license` en la raíz del proyecto con el token dentro.
+2. Archivo `.hana-license` en la raíz del proyecto con la clave dentro.
 
 Si no hay licencia, el servidor arranca en **modo demo** por 7 días con funcionalidad básica.
 

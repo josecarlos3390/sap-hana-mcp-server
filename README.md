@@ -94,9 +94,7 @@ If the CLI is on `PATH`, you may use `"command": "hana-mcp-server"` and omit `ar
 
 3. Restart Claude Desktop.
 
-**Optional:** [HANA MCP UI](https://www.npmjs.com/package/hana-mcp-ui) — `npx hana-mcp-ui` for editing envs and deploying to Claude Desktop.
 
----
 
 ## 💻 IDEs & code agents
 
@@ -327,16 +325,6 @@ Restart the MCP client after the change. If `npx` then fails with `EPERM` on `~/
 
 ---
 
-## 🖥️ HANA MCP UI
-
-```bash
-npx hana-mcp-ui
-```
-
-![HANA MCP UI](docs/hana_mcp_ui.gif)
-
----
-
 ## 🏗️ Architecture
 
 ![HANA MCP Server Architecture](docs/hana_mcp_architecture.svg)
@@ -371,8 +359,6 @@ hana-mcp-server/
 ## 🤝 Support
 
 - **Issues:** [GitHub Issues](https://github.com/hatrigt/hana-mcp-server/issues)
-- **UI:** [HANA MCP UI](https://www.npmjs.com/package/hana-mcp-ui)
-
 ## 📄 License
 
 Proprietary — see [LICENSE](LICENSE) (End User License Agreement).

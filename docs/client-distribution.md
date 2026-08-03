@@ -27,9 +27,7 @@ hana-mcp-client/
 ├── mcp.json.example             # Plantilla de configuración MCP
 ├── README-CLIENTE.md            # Instrucciones de instalación
 ├── start.bat                    # Lanzador para Windows (doble clic)
-├── license-menu.bat             # Menú de gestión de licencias (doble clic)
 └── scripts/
-    ├── license-menu.js          # Menú interactivo de licencias
     ├── update-client.ps1        # Updater para hana_apply_update
     └── update-client.sh
 ```
@@ -109,18 +107,13 @@ hana-mcp-client/
 
 | Ruta | Motivo |
 |------|--------|
-| `backend/license-server/` | Backend vendor; nunca debe estar en el cliente. |
-| `private-key.pem` | Clave privada de firma de licencias. |
-| `scripts/generate-license-keys.js` | Generación de claves. |
-| `scripts/generate-license-token.js` | Generación de tokens. |
-| `scripts/deploy-license-server.*` | Scripts de despliegue del backend. |
+| `private-key.pem` | Clave privada de firma de licencias. Vive en el proyecto `sap-hana-mcp-license-server`. |
 | `src/licensing/private-key.pem` | Si existiera. |
 | `.env` real del cliente | Se crea en sitio; no se commitea ni se distribuye. |
 | `mcp.json` real del cliente | Contiene contraseñas; usar `mcp.json.example`. |
 | `tests/` | No es necesario en producción. |
-| `hana-mcp-ui/` | Interfaz web opcional; evaluar si se requiere. |
 | `docs/propuesta-comercial*.md` | Documentación interna comercial. |
-| `docs/license-server-portable-config.md` | Guía del backend. |
+| `docs/license-server-portable-config.md` | Guía del backend; vive en el proyecto `sap-hana-mcp-license-server`. |
 
 ---
 

@@ -52,27 +52,15 @@ pids
 private-key.pem
 .hana-license
 .hana-license-cache.json
-.mcp.json
 test-license.txt
 scripts/test-kb-input.jsonl
 venv-sap/
-
-# Temporary / captured files
-bp-balance-capture-*.txt
-bp-balance-query-hash-*.sql
-statement-*.sql
-sap-note-*
-note-*-endpoint-*.txt
-monitorear.txt
-hana-mcp-server-test.exe
 
 *claude_con*
 *POC
 *backup*
 image.png
 .qod*
-hana-mcp-ui/bun.lock
-hana-mcp-ui/bun.lockb
 Agent*
 !AGENTS.md
 .cur*
