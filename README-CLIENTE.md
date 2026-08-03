@@ -300,6 +300,36 @@ El MCP incluye herramientas para guardar conocimiento directamente en la KB loca
 
 Ambas tools necesitan una licencia activa con la característica `knowledge-base`.
 
+## Verificación de requisitos
+
+Antes de usar el MCP, ejecutá la verificación de requisitos:
+
+```bash
+hana-mcp-server.exe --check-requirements
+```
+
+O desde el menú de licencias seleccionando **6. Verificar/instalar requisitos**.
+
+Esto revisa:
+
+- Node.js >= 18 (solo para el paquete source).
+- Existencia de `.env` y variables de conexión HANA.
+- Licencia activa (`.hana-license` o `HANA_LICENSE_KEY`).
+- Credenciales SUSE SSH (opcional, para tools de diagnóstico SUSE).
+- Python + Playwright (opcional, para descarga automática de SAP Notes).
+
+Si faltan dependencias opcionales, el MCP funciona igual pero algunas features estarán deshabilitadas.
+
+### Instalar requisitos opcionales
+
+Para habilitar la descarga automática de SAP Notes:
+
+```bash
+hana-mcp-server.exe --install-requirements
+```
+
+Esto instala Playwright y el navegador Chromium. Requiere Python 3 previamente instalado.
+
 ## Contenido del paquete
 
 - `hana-mcp-server.exe` — MCP empaquetado con Node.js.

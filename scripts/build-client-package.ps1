@@ -78,12 +78,14 @@ if ($IncludeSource) {
     # Marker so the updater knows this is a split KB layout
     Set-Content -Path (Join-Path $kbOut ".split-layout") -Value "vendor=bundled user=user remote=remote" -Encoding UTF8
 
-    # Copy updater scripts and license menu
+    # Copy updater scripts, license menu and requirement helpers
     $scriptsOut = Join-Path $outPath "scripts"
     New-Item -ItemType Directory -Path $scriptsOut | Out-Null
     Copy-Item (Join-Path $repoRoot "scripts\update-client.ps1") $scriptsOut
     Copy-Item (Join-Path $repoRoot "scripts\update-client.sh") $scriptsOut
     Copy-Item (Join-Path $repoRoot "scripts\license-menu.js") $scriptsOut
+    Copy-Item (Join-Path $repoRoot "scripts\check-requirements.js") $scriptsOut
+    Copy-Item (Join-Path $repoRoot "scripts\install-requirements.js") $scriptsOut
 
     Write-Host "Installing production dependencies..."
     Push-Location $outPath

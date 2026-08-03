@@ -36,6 +36,11 @@ const licenseArgs = new Set([
   '-i'
 ]);
 
+const requirementsArgs = new Set([
+  '--check-requirements',
+  '--install-requirements'
+]);
+
 function isLicenseInvocation() {
   const args = process.argv.slice(2);
   if (args.length === 0) {
@@ -53,7 +58,19 @@ function isLicenseInvocation() {
   return false;
 }
 
-if (isLicenseInvocation()) {
+function isRequirementsInvocation() {
+  const args = process.argv.slice(2);
+  return args.some((a) => requirementsArgs.has(a));
+}
+
+if (isRequirementsInvocation()) {
+  const args = process.argv.slice(2);
+  if (args.includes('--check-requirements')) {
+    require('./scripts/check-requirements.js');
+  } else if (args.includes('--install-requirements')) {
+    require('./scripts/install-requirements.js');
+  }
+} else if (isLicenseInvocation()) {
   // Remove the --license-menu sentinel so license-menu.js sees the real flags.
   const args = process.argv.slice(2).filter((a) => a !== '--license-menu');
   process.argv = [process.argv[0], process.argv[1], ...args];

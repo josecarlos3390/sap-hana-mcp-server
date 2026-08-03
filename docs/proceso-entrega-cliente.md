@@ -84,6 +84,8 @@ hana-mcp-server-exe/
 ├── license-menu.bat             # Menú de licencias (doble clic)
 ├── license-menu.ps1
 └── scripts/
+    ├── check-requirements.js    # Verificación de requisitos
+    ├── install-requirements.js  # Instalación de dependencias opcionales
     ├── update-client.ps1        # Helper de actualizaciones
     └── update-client.sh
 ```
@@ -194,7 +196,8 @@ Si se agregan casos a `docs/kb/cases/` en el repo, regenerar el ZIP con `npm run
 - [ ] El ZIP contiene `license-menu.bat` y `license-menu.ps1`.
 - [ ] El ZIP contiene `docs/kb/bundled/` con los casos esperados.
 - [ ] El ZIP contiene `config/` con las plantillas de agentes.
-- [ ] `README-CLIENTE.md` describe el asistente de configuración y la compatibilidad con agentes.
+- [ ] El ZIP contiene `scripts/check-requirements.js` y `scripts/install-requirements.js`.
+- [ ] `README-CLIENTE.md` describe el asistente de configuración, la compatibilidad con agentes y la verificación de requisitos.
 - [ ] No hay `private-key.pem` ni archivos del backend en el ZIP.
 - [ ] `src/licensing/public-key.pem` está actualizado y coincide con el backend.
 - [ ] `.env.example` **no contiene datos reales de ningún cliente** (usa valores ficticios como `hana.acmecorp.example`).

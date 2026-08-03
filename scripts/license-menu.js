@@ -426,6 +426,64 @@ async function askWithDefault(reader, question, defaultValue) {
   return answer.trim() || defaultValue;
 }
 
+async function runRequirementsMenu(reader) {
+  let inSubmenu = true;
+  while (inSubmenu) {
+    clearConsole();
+    printHeader();
+    console.log('--- Requisitos del sistema ---');
+    console.log('');
+    console.log('1. Verificar requisitos');
+    console.log('2. Instalar requisitos opcionales (Python + Playwright para SAP Notes)');
+    console.log('0. Volver al menú principal');
+    console.log('');
+
+    const choice = await reader.ask('Selecciona una opción: ');
+
+    switch (choice) {
+      case '1': {
+        const { spawn } = require('child_process');
+        const script = path.join(BASE_DIR, 'scripts', 'check-requirements.js');
+        const cmd = process.pkg
+          ? path.join(BASE_DIR, 'hana-mcp-server.exe')
+          : process.execPath;
+        const args = process.pkg ? ['--check-requirements'] : [script];
+        const child = spawn(cmd, args, {
+          stdio: 'inherit',
+          cwd: BASE_DIR,
+          shell: false
+        });
+        await new Promise((resolve) => child.on('close', resolve));
+        await reader.ask('\nPresiona Enter para volver al menú...');
+        break;
+      }
+      case '2': {
+        const { spawn } = require('child_process');
+        const script = path.join(BASE_DIR, 'scripts', 'install-requirements.js');
+        const cmd = process.pkg
+          ? path.join(BASE_DIR, 'hana-mcp-server.exe')
+          : process.execPath;
+        const args = process.pkg ? ['--install-requirements'] : [script];
+        const child = spawn(cmd, args, {
+          stdio: 'inherit',
+          cwd: BASE_DIR,
+          shell: false
+        });
+        await new Promise((resolve) => child.on('close', resolve));
+        await reader.ask('\nPresiona Enter para volver al menú...');
+        break;
+      }
+      case '0':
+      case '':
+        inSubmenu = false;
+        break;
+      default:
+        console.log('\nOpción no válida.');
+        await reader.ask('\nPresiona Enter para continuar...');
+    }
+  }
+}
+
 async function runSetupWizard(reader) {
   console.log('\n--- Asistente de configuración ---');
   console.log('Este asistente crea los archivos de configuración necesarios para conectar');
@@ -727,7 +785,8 @@ async function mainMenu() {
     console.log('3. Transferir Licencia');
     console.log('4. Ver Información de mi Licencia');
     console.log('5. Configurar conexión a HANA (asistente)');
-    console.log('6. Salir');
+    console.log('6. Verificar/instalar requisitos');
+    console.log('7. Salir');
     console.log('');
     console.log(`Servidor: ${SERVER_URL}`);
     console.log(`Producto: ${PRODUCT_CODE}`);
@@ -752,6 +811,9 @@ async function mainMenu() {
         await runSetupWizard(reader);
         break;
       case '6':
+        await runRequirementsMenu(reader);
+        break;
+      case '7':
         running = false;
         break;
       default:

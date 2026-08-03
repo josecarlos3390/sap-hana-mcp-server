@@ -74,6 +74,8 @@ Copy-Relative 'docs\distribucion-repo-README.md' 'README.md'
 # and is invoked via "hana-mcp-server.exe --license-menu", so we do not ship it as a
 # separate filesystem file here. Updater scripts remain plain files because the OS
 # executes them directly.
+Copy-Relative 'scripts\check-requirements.js' 'scripts\check-requirements.js'
+Copy-Relative 'scripts\install-requirements.js' 'scripts\install-requirements.js'
 Copy-Relative 'scripts\update-client.ps1' 'scripts\update-client.ps1'
 
 # Generate license-menu launchers next to the .exe so the client can open the
