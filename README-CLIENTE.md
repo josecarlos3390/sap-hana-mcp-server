@@ -286,8 +286,8 @@ También podés forzar una sincronización manual reiniciando el servidor.
 - `mcp.json.example` — plantilla de configuración MCP.
 - `start.bat` — lanzador del servidor MCP para Windows.
 - `license-menu.bat` / `license-menu.ps1` — lanzadores del menú de licencias.
-- `scripts/license-menu.js` — lógica del menú de licencias (usado internamente por el .exe).
 - `scripts/update-client.ps1` / `update-client.sh` — helpers de actualización.
+- `node_modules/@sap/hana-client/` — driver nativo de SAP HANA necesario en runtime.
 - `node_modules/@sap/hana-client/` — driver nativo de SAP HANA necesario en runtime.
 
 ## Modo offline (licencia vencida)

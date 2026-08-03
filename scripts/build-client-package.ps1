@@ -1,20 +1,25 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Build the client distribution package for the HANA MCP Server.
+    Build the source update package for the HANA MCP Server.
 .DESCRIPTION
     Creates a clean distribution folder under dist/hana-mcp-client/ with the
-    files required to run the MCP locally. Excludes vendor-only assets such as
-    the license backend, private keys, tests and administrative scripts.
+    source files required to run the MCP with Node.js. This package is intended
+    for the internal auto-update mechanism (hana_apply_update / CDN) and for
+    advanced users who prefer a Node.js-based deployment.
+
+    The package delivered to end clients is the executable built by
+    scripts/build-exe.ps1 (dist/hana-mcp-server-v<version>-win-x64.zip).
+
+    Excludes vendor-only assets such as the license backend, private keys,
+    tests and administrative scripts.
 
 .PARAMETER OutputDir
     Output directory for the package.
 
 .PARAMETER IncludeSource
-    If set, includes source code (src/) instead of building an executable.
-    By default the script prepares a source-based distribution, which is the
-    simplest option today. Executable packaging with pkg/nexe can be enabled
-    later.
+    If set, includes source code (src/). This is the default and required for
+    the update mechanism.
 #>
 param(
     [string]$OutputDir = "dist\hana-mcp-client",
