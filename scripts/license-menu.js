@@ -24,8 +24,9 @@ const axios = require('axios');
 require('dotenv').config();
 
 const { getHardwareId } = require('../src/licensing/hardware-id');
+const { getLicenseFilePath } = require('../src/licensing/license-path');
 
-const LICENSE_FILE = path.join(process.cwd(), '.hana-license');
+const LICENSE_FILE = getLicenseFilePath();
 const SERVER_URL = (process.env.HANA_LICENSE_SERVER_URL || 'https://licencias-mcp.onrender.com').replace(/\/$/, '');
 const PRODUCT_CODE = process.env.HANA_LICENSE_PRODUCT_CODE || 'hana-b1';
 

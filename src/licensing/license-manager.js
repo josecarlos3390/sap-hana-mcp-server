@@ -15,12 +15,13 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const { getHardwareId } = require('./hardware-id');
+const { getLicenseFilePath } = require('./license-path');
 const { logger } = require('../utils/logger');
 const { redactSecrets } = require('../utils/sensitive-redact');
 
 const PUBLIC_KEY_PATH = path.join(__dirname, 'public-key.pem');
-const LICENSE_FILE = path.join(process.cwd(), '.hana-license');
-const LICENSE_CACHE_FILE = path.join(process.cwd(), '.hana-license-cache.json');
+const LICENSE_FILE = getLicenseFilePath();
+const LICENSE_CACHE_FILE = path.join(path.dirname(LICENSE_FILE), '.hana-license-cache.json');
 
 class LicenseManager {
   constructor() {

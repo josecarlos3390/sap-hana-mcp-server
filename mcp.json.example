@@ -3,15 +3,16 @@
     "hana": {
       "type": "stdio",
       "timeout": 600,
-      "command": "C:\\Program Files\\nodejs\\node.exe",
-      "args": [
-        "C:\\hana-mcp-client\\hana-mcp-server.js"
-      ],
+      "_comment_command": "Use the packaged executable path for the .exe distribution, or node.exe for the source distribution.",
+      "command": "C:\\hana-mcp-client\\hana-mcp-server.exe",
+      "args": [],
       "env": {
-        "HANA_LICENSE_KEY": "<token-jwt-generado-por-el-vendor>",
+        "_comment_license": "License is normally stored in .hana-license after redeeming a voucher via license-menu. Leave HANA_LICENSE_KEY empty to read the file.",
+        "HANA_LICENSE_KEY": "",
+        "HANA_LICENSE_FILE": "C:\\hana-mcp-client\\.hana-license",
         "HANA_LICENSE_SERVER_URL": "https://licencias-mcp.onrender.com",
-        "HANA_KB_REMOTE_URL": "https://licencias-mcp.onrender.com/api/kb",
         "HANA_LICENSE_PRODUCT_CODE": "hana-b1",
+        "HANA_KB_REMOTE_URL": "https://licencias-mcp.onrender.com/api/kb",
         "HANA_HOST": "<host-hana>",
         "HANA_PORT": "30015",
         "HANA_USER": "<usuario-hana>",
