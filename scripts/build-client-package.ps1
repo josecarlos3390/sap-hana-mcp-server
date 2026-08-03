@@ -60,6 +60,7 @@ if ($IncludeSource) {
 
     $docsOut = Join-Path $outPath "docs"
     New-Item -ItemType Directory -Path $docsOut | Out-Null
+    Copy-Item -Recurse (Join-Path $repoRoot "config") (Join-Path $outPath "config")
     $kbOut = Join-Path $docsOut "kb"
     New-Item -ItemType Directory -Path $kbOut | Out-Null
     # Vendor-shipped cases (overwrite on updates)

@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "hana": {
+      "type": "stdio",
+      "command": "C:\\hana-mcp-client\\hana-mcp-server.exe",
+      "args": [],
+      "env": {
+        "HANA_LICENSE_FILE": "C:\\hana-mcp-client\\.hana-license",
+        "HANA_LICENSE_SERVER_URL": "https://licencias-mcp.onrender.com",
+        "HANA_LICENSE_PRODUCT_CODE": "hana-b1",
+        "HANA_KB_REMOTE_URL": "https://licencias-mcp.onrender.com/api/kb",
+        "HANA_HOST": "<host-hana>",
+        "HANA_PORT": "30015",
+        "HANA_USER": "<usuario-hana>",
+        "HANA_PASSWORD": "<contraseña-hana>",
+        "HANA_SCHEMA": "<schema>",
+        "HANA_SSL": "false",
+        "HANA_ENCRYPT": "false",
+        "HANA_VALIDATE_CERT": "false",
+        "LOG_LEVEL": "info",
+        "ENABLE_FILE_LOGGING": "true",
+        "ENABLE_CONSOLE_LOGGING": "false"
+      }
+    }
+  }
+}

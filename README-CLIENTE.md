@@ -17,17 +17,130 @@ Este paquete contiene el Model Context Protocol (MCP) server para SAP HANA y SAP
    C:\hana-mcp-client\
    ```
 
-2. Copiar `.env.example` como `.env` y completar al menos:
-   - `HANA_HOST`
-   - `HANA_PORT`
-   - `HANA_USER`
-   - `HANA_PASSWORD`
-   - `HANA_SCHEMA`
-   - `HANA_LICENSE_KEY` (si no se usa `.hana-license`)
+2. Abrir el menú de licencias (`license-menu.bat`) y seleccionar **5. Configurar conexión a HANA (asistente)** para crear automáticamente el `.env` y el archivo de configuración para tu agente de IA.
 
-3. Si el vendor entregó el token en un archivo, guardarlo como `.hana-license` en la misma carpeta.
+3. Activar la licencia con la opción **2. Activar Licencia** → **Canjear voucher** (o **Activar licencia directa** si el vendor te entregó una clave).
 
-4. Ejecutar `start.bat` (doble clic) o invocar `hana-mcp-server.exe` desde tu cliente MCP.
+4. Copiar el archivo de configuración generado para tu agente (Claude Desktop, Kimi Code, VS Code u OpenCode) en la ubicación correspondiente.
+
+5. Reiniciar tu agente de IA.
+
+> Si preferís configurar manualmente, ver la sección [Configuración manual por agente](#configuración-manual-por-agente) más abajo.
+
+## Configuración con el asistente
+
+El menú de licencias incluye un asistente interactivo (opción **5**) que pregunta:
+
+- Host, puerto, usuario, contraseña y schema de SAP HANA.
+- Tipo de conexión (`auto`, `single_container`, `mdc_tenant`, `mdc_system`).
+- Si usar SSL/encriptación/validación de certificado.
+- Qué agente de IA vas a usar.
+
+Al finalizar genera:
+
+- `.env` en la carpeta del MCP.
+- Un archivo JSON de ejemplo listo para copiar en tu agente (`claude-desktop-config.json`, `kimi-code-config.json`, `vscode-mcp-config.json` u `opencode-config.json`).
+
+## Compatibilidad con agentes
+
+El HANA MCP Server implementa el protocolo **Model Context Protocol (MCP) sobre stdio**, por lo que es compatible con cualquier cliente MCP. Hemos probado y documentado la configuración para:
+
+- **Claude Desktop** — usa `claude_desktop_config.json`.
+- **Kimi Code** — usa `mcp.json` o la configuración MCP del IDE.
+- **VS Code** — extensión MCP / Cline / Claude Code, usa `settings.json`.
+- **OpenCode** — usa `opencode.json`.
+
+La configuración es esencialmente la misma: apuntar el comando al ejecutable (`hana-mcp-server.exe`) y pasar las variables de entorno necesarias. Cada agente tiene su propio formato de archivo.
+
+## Configuración manual por agente
+
+Si no usás el asistente, copiá `.env.example` a `.env`, completalo, y luego copiá la sección correspondiente a tu agente.
+
+### Claude Desktop
+
+Guardar como `%APPDATA%\Claude\claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "hana": {
+      "command": "C:\\hana-mcp-client\\hana-mcp-server.exe",
+      "args": [],
+      "env": {
+        "HANA_LICENSE_FILE": "C:\\hana-mcp-client\\.hana-license",
+        "HANA_LICENSE_SERVER_URL": "https://licencias-mcp.onrender.com",
+        "HANA_LICENSE_PRODUCT_CODE": "hana-b1",
+        "HANA_KB_REMOTE_URL": "https://licencias-mcp.onrender.com/api/kb",
+        "HANA_HOST": "<host-hana>",
+        "HANA_PORT": "30015",
+        "HANA_USER": "<usuario-hana>",
+        "HANA_PASSWORD": "<contraseña-hana>",
+        "HANA_SCHEMA": "<schema>",
+        "HANA_SSL": "false",
+        "HANA_ENCRYPT": "false",
+        "HANA_VALIDATE_CERT": "false",
+        "LOG_LEVEL": "info",
+        "ENABLE_FILE_LOGGING": "true",
+        "ENABLE_CONSOLE_LOGGING": "false"
+      }
+    }
+  }
+}
+```
+
+### Kimi Code
+
+Guardar como `%USERPROFILE%\.kimi\mcp.json` (o la ruta que indique la documentación de Kimi):
+
+```json
+{
+  "mcpServers": {
+    "hana": {
+      "type": "stdio",
+      "command": "C:\\hana-mcp-client\\hana-mcp-server.exe",
+      "args": [],
+      "env": { /* mismas variables que Claude Desktop */ }
+    }
+  }
+}
+```
+
+### VS Code (extensión MCP)
+
+Agregar al `settings.json` de VS Code:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "hana": {
+        "type": "stdio",
+        "command": "C:\\hana-mcp-client\\hana-mcp-server.exe",
+        "args": [],
+        "env": { /* mismas variables que Claude Desktop */ }
+      }
+    }
+  }
+}
+```
+
+### OpenCode
+
+Guardar como `%USERPROFILE%\.opencode\config.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "hana": {
+      "type": "local",
+      "command": ["C:\\hana-mcp-client\\hana-mcp-server.exe"],
+      "enabled": true,
+      "env": { /* mismas variables que Claude Desktop */ }
+    }
+  }
+}
+```
 
 ## Gestión de licencias
 

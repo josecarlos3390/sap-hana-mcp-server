@@ -66,23 +66,29 @@ hana-mcp-server-exe/
 ├── hana-mcp-server.exe          # MCP empaquetado
 ├── docs/
 │   └── kb/
-│       ├── cases/               # KB local
+│       ├── bundled/             # KB incluida con el producto
+│       ├── user/                # KB creada por el cliente (vacía al inicio)
+│       ├── remote/              # KB sincronizada desde la nube (vacía al inicio)
 │       └── index.md
+├── config/                      # Plantillas de configuración por agente
+│   ├── claude-desktop-config.json.example
+│   ├── kimi-code-config.json.example
+│   ├── vscode-mcp-config.json.example
+│   └── opencode-config.json.example
 ├── public-key.pem               # Clave pública de licencias
 ├── .env.example                 # Plantilla de configuración
-├── mcp.json.example             # Plantilla MCP
+├── mcp.json.example             # Plantilla MCP genérica
 ├── README-CLIENTE.md            # Guía del cliente
 ├── LICENSE
 ├── start.bat                    # Lanzador del servidor
 ├── license-menu.bat             # Menú de licencias (doble clic)
 ├── license-menu.ps1
 └── scripts/
-    ├── license-menu.js          # Lógica del menú
     ├── update-client.ps1        # Helper de actualizaciones
     └── update-client.sh
 ```
 
-> **Importante:** No debe existir `private-key.pem`, `backend/`, `tests/`, ni código fuente del license server.
+> **Importante:** No debe existir `private-key.pem`, `backend/`, `tests/`, `opencode.json` con datos reales, ni código fuente del license server.
 
 ---
 
@@ -101,15 +107,14 @@ El artefacto final es el ZIP. Se puede entregar por:
    ```
    C:\hana-mcp-client\
    ```
-2. Copiar `.env.example` como `.env` y completar:
-   - `HANA_HOST`, `HANA_PORT`, `HANA_USER`, `HANA_PASSWORD`, `HANA_SCHEMA`
-   - `HANA_LICENSE_SERVER_URL=https://licencias-mcp.onrender.com`
-   - `HANA_LICENSE_PRODUCT_CODE=hana-b1`
-3. Ejecutar `license-menu.bat` y seleccionar **1. Ver mi Hardware ID**.
-4. Enviar el Hardware ID al vendor.
-5. El vendor genera la licencia (o voucher) en el backend.
-6. El cliente selecciona **2. Activar Licencia** en el menú e ingresa la clave o canjea el voucher.
-7. Ejecutar `start.bat` para iniciar el MCP, o configurar `hana-mcp-server.exe` en el cliente MCP (Claude Code, VS Code, etc.).
+2. Ejecutar `license-menu.bat` y seleccionar **5. Configurar conexión a HANA (asistente)**. Esto crea el `.env` y el archivo de configuración para el agente elegido (Claude Desktop, Kimi Code, VS Code u OpenCode).
+3. En el mismo menú, seleccionar **1. Ver mi Hardware ID** y enviar el HWID al vendor.
+4. El vendor genera la licencia (o voucher) en el backend.
+5. El cliente selecciona **2. Activar Licencia** en el menú e ingresa la clave o canjea el voucher.
+6. Copiar el archivo de configuración generado (`claude-desktop-config.json`, `kimi-code-config.json`, etc.) a la ubicación correspondiente del agente.
+7. Reiniciar el agente de IA.
+
+> El MCP implementa el protocolo MCP sobre stdio, por lo que es compatible con cualquier cliente MCP. La configuración es la misma en todos; solo cambia el formato del archivo donde se pega.
 
 ---
 
@@ -187,7 +192,9 @@ Si se agregan casos a `docs/kb/cases/` en el repo, regenerar el ZIP con `npm run
 - [ ] `npm test` pasa sin errores.
 - [ ] `npm run build:exe` genera el ZIP.
 - [ ] El ZIP contiene `license-menu.bat` y `license-menu.ps1`.
-- [ ] El ZIP contiene `docs/kb/cases/` con los casos esperados.
+- [ ] El ZIP contiene `docs/kb/bundled/` con los casos esperados.
+- [ ] El ZIP contiene `config/` con las plantillas de agentes.
+- [ ] `README-CLIENTE.md` describe el asistente de configuración y la compatibilidad con agentes.
 - [ ] No hay `private-key.pem` ni archivos del backend en el ZIP.
 - [ ] `src/licensing/public-key.pem` está actualizado y coincide con el backend.
 - [ ] `.env.example` **no contiene datos reales de ningún cliente** (usa valores ficticios como `hana.acmecorp.example`).

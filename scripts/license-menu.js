@@ -27,8 +27,76 @@ const { getHardwareId } = require('../src/licensing/hardware-id');
 const { getLicenseFilePath } = require('../src/licensing/license-path');
 
 const LICENSE_FILE = getLicenseFilePath();
+const BASE_DIR = process.pkg ? path.dirname(process.execPath) : process.cwd();
 const SERVER_URL = (process.env.HANA_LICENSE_SERVER_URL || 'https://licencias-mcp.onrender.com').replace(/\/$/, '');
 const PRODUCT_CODE = process.env.HANA_LICENSE_PRODUCT_CODE || 'hana-b1';
+
+// Agent configuration templates embedded so the wizard works from the packaged
+// executable without external template files.
+const AGENT_TEMPLATES = {
+  claude: {
+    filename: 'claude-desktop-config.json',
+    targetPath: '%APDATA%\\Claude\\claude_desktop_config.json',
+    json: {
+      mcpServers: {
+        hana: {
+          command: 'C:\\\\hana-mcp-client\\\\hana-mcp-server.exe',
+          args: [],
+          env: {}
+        }
+      }
+    },
+    applyEnv: (cfg, env) => { cfg.mcpServers.hana.env = env; }
+  },
+  kimi: {
+    filename: 'kimi-code-config.json',
+    targetPath: '%USERPROFILE%\\.kimi\\mcp.json',
+    json: {
+      mcpServers: {
+        hana: {
+          type: 'stdio',
+          command: 'C:\\\\hana-mcp-client\\\\hana-mcp-server.exe',
+          args: [],
+          env: {}
+        }
+      }
+    },
+    applyEnv: (cfg, env) => { cfg.mcpServers.hana.env = env; }
+  },
+  vscode: {
+    filename: 'vscode-mcp-config.json',
+    targetPath: 'Tu settings.json de VS Code (Ctrl+Shift+P -> Preferences: Open Settings JSON)',
+    json: {
+      mcp: {
+        servers: {
+          hana: {
+            type: 'stdio',
+            command: 'C:\\\\hana-mcp-client\\\\hana-mcp-server.exe',
+            args: [],
+            env: {}
+          }
+        }
+      }
+    },
+    applyEnv: (cfg, env) => { cfg.mcp.servers.hana.env = env; }
+  },
+  opencode: {
+    filename: 'opencode-config.json',
+    targetPath: '%USERPROFILE%\\.opencode\\config.json',
+    json: {
+      $schema: 'https://opencode.ai/config.json',
+      mcp: {
+        hana: {
+          type: 'local',
+          command: ['C:\\\\hana-mcp-client\\\\hana-mcp-server.exe'],
+          enabled: true,
+          env: {}
+        }
+      }
+    },
+    applyEnv: (cfg, env) => { cfg.mcp.hana.env = env; }
+  }
+};
 
 function clearConsole() {
   if (process.stdin.isTTY) {
@@ -353,6 +421,121 @@ async function transferLicense(reader) {
   await reader.ask('\nPresiona Enter para volver al menú...');
 }
 
+async function askWithDefault(reader, question, defaultValue) {
+  const answer = await reader.ask(`${question} [${defaultValue}]: `);
+  return answer.trim() || defaultValue;
+}
+
+async function runSetupWizard(reader) {
+  console.log('\n--- Asistente de configuración ---');
+  console.log('Este asistente crea los archivos de configuración necesarios para conectar');
+  console.log('el MCP con tu base de datos SAP HANA y tu agente de IA preferido.\n');
+
+  const host = await reader.ask('Host de SAP HANA: ');
+  const port = await askWithDefault(reader, 'Puerto', '30015');
+  const user = await reader.ask('Usuario de HANA: ');
+  const password = await reader.ask('Contraseña de HANA: ');
+  const schema = await reader.ask('Schema por defecto: ');
+  const connectionType = await askWithDefault(reader, 'Tipo de conexión (auto/single_container/mdc_tenant/mdc_system)', 'auto');
+
+  const sslAnswer = await askWithDefault(reader, '¿Usar SSL? (s/n)', 'n');
+  const useSsl = sslAnswer.toLowerCase().startsWith('s') ? 'true' : 'false';
+  const encryptAnswer = await askWithDefault(reader, '¿Usar encriptación? (s/n)', 'n');
+  const useEncrypt = encryptAnswer.toLowerCase().startsWith('s') ? 'true' : 'false';
+  const validateAnswer = await askWithDefault(reader, '¿Validar certificado SSL? (s/n)', 'n');
+  const useValidate = validateAnswer.toLowerCase().startsWith('s') ? 'true' : 'false';
+
+  const installDir = process.pkg
+    ? path.dirname(process.execPath)
+    : await askWithDefault(reader, 'Directorio de instalación', 'C:\\hana-mcp-client');
+
+  const licenseFile = path.join(installDir, '.hana-license');
+
+  const env = {
+    HANA_LICENSE_FILE: licenseFile,
+    HANA_LICENSE_SERVER_URL: SERVER_URL,
+    HANA_LICENSE_PRODUCT_CODE: PRODUCT_CODE,
+    HANA_KB_REMOTE_URL: `${SERVER_URL}/api/kb`,
+    HANA_HOST: host,
+    HANA_PORT: port,
+    HANA_USER: user,
+    HANA_PASSWORD: password,
+    HANA_SCHEMA: schema,
+    HANA_CONNECTION_TYPE: connectionType,
+    HANA_SSL: useSsl,
+    HANA_ENCRYPT: useEncrypt,
+    HANA_VALIDATE_CERT: useValidate,
+    LOG_LEVEL: 'info',
+    ENABLE_FILE_LOGGING: 'true',
+    ENABLE_CONSOLE_LOGGING: 'false'
+  };
+
+  // Write .env
+  const envLines = [
+    '# HANA MCP Server - Configuración generada por el asistente',
+    '# No compartas este archivo ni lo commitees.',
+    ''
+  ];
+  for (const [key, value] of Object.entries(env)) {
+    envLines.push(`${key}=${value}`);
+  }
+  const envPath = path.join(BASE_DIR, '.env');
+  fs.writeFileSync(envPath, envLines.join('\n') + '\n', 'utf8');
+  console.log(`\n✅ Archivo .env guardado en: ${envPath}`);
+
+  // Ask agent
+  console.log('\n--- Selecciona tu agente de IA ---');
+  console.log('1. Claude Desktop');
+  console.log('2. Kimi Code');
+  console.log('3. VS Code (extensión MCP)');
+  console.log('4. OpenCode');
+  const agentChoice = await reader.ask('Opción: ');
+  const agentMap = { '1': 'claude', '2': 'kimi', '3': 'vscode', '4': 'opencode' };
+  const agentKey = agentMap[agentChoice];
+
+  if (agentKey && AGENT_TEMPLATES[agentKey]) {
+    const template = AGENT_TEMPLATES[agentKey];
+    const cfg = JSON.parse(JSON.stringify(template.json));
+    template.applyEnv(cfg, env);
+
+    // Adjust command path to installation directory
+    function updateCommand(obj) {
+      if (typeof obj === 'string') {
+        return obj.replace(/C:\\\\hana-mcp-client/g, installDir);
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(updateCommand);
+      }
+      if (obj && typeof obj === 'object') {
+        for (const key of Object.keys(obj)) {
+          obj[key] = updateCommand(obj[key]);
+        }
+      }
+      return obj;
+    }
+    updateCommand(cfg);
+
+    const cfgPath = path.join(BASE_DIR, template.filename);
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + '\n', 'utf8');
+
+    console.log(`\n✅ Configuración para ${agentKey.toUpperCase()} guardada en: ${cfgPath}`);
+    console.log(`   Copia el contenido de este archivo en:`);
+    console.log(`   ${template.targetPath}`);
+  } else {
+    console.log('\n⚠️  No se generó configuración de agente. Puedes usar .env con cualquier cliente MCP.');
+  }
+
+  console.log('\n--- Resumen ---');
+  console.log(`Directorio de instalación: ${installDir}`);
+  console.log(`Archivo de licencia:       ${licenseFile}`);
+  console.log('Pasos siguientes:');
+  console.log('  1. Activa la licencia con la opción "Activar Licencia" del menú principal.');
+  console.log('  2. Copia el archivo de configuración generado a la ubicación de tu agente.');
+  console.log('  3. Reinicia tu agente de IA.');
+
+  await reader.ask('\nPresiona Enter para volver al menú...');
+}
+
 function parseCliArgs() {
   const args = process.argv.slice(2);
   const result = {};
@@ -543,7 +726,8 @@ async function mainMenu() {
     console.log('2. Activar Licencia');
     console.log('3. Transferir Licencia');
     console.log('4. Ver Información de mi Licencia');
-    console.log('5. Salir');
+    console.log('5. Configurar conexión a HANA (asistente)');
+    console.log('6. Salir');
     console.log('');
     console.log(`Servidor: ${SERVER_URL}`);
     console.log(`Producto: ${PRODUCT_CODE}`);
@@ -565,6 +749,9 @@ async function mainMenu() {
         await showLicenseInfo(reader);
         break;
       case '5':
+        await runSetupWizard(reader);
+        break;
+      case '6':
         running = false;
         break;
       default:
