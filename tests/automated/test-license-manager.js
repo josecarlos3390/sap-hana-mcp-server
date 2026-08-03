@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * License manager unit tests.
- * Mocks JWT/fs to exercise DEMO, VALID, EXPIRED and INVALID states.
+ * Mocks JWT/fs to exercise VALID, EXPIRED and INVALID states.
  */
 
 const path = require('path');
@@ -57,28 +57,40 @@ function withMocks({ token, verifyResult, verifyError, fsExists = {} }, fn) {
   };
 
   const licenseManager = require(lmPath);
+  // Isolate tests from any real license cache on disk
+  licenseManager.readLicenseCache = () => null;
+  licenseManager.writeLicenseCache = () => {};
+  licenseManager.canUseCachedLicense = () => false;
   return fn(licenseManager, { verifyCalls, writtenFiles });
 }
 
 console.log('license manager tests\n');
 
 (async () => {
-  // 1. No token -> DEMO
+  // 1. No token -> INVALID (server must exit)
   await withMocks({ token: null }, async (lm) => {
-    const status = await lm.validate();
-    assert.strictEqual(status.status, 'DEMO');
-    assert.strictEqual(status.plan, 'trial');
-    assert.deepStrictEqual(status.features, ['hana']);
-    assert(lm.hasFeature('hana'));
-    assert(!lm.hasFeature('knowledge-base'));
-    console.log('  ok: no token -> DEMO with hana feature only');
+    let threw = false;
+    try {
+      await lm.validate();
+    } catch (e) {
+      threw = true;
+      assert.strictEqual(lm.status, 'INVALID');
+      assert(/No license found/i.test(e.message));
+    }
+    assert(threw, 'validate should throw when no license is found');
+    console.log('  ok: no token -> INVALID and throws');
   });
+
+  // Helper to create a JWT-shaped token (isJwt requires 3 dot-separated parts and length > 100)
+  function makeJwtToken(label) {
+    return `eyJhbGciOiJSUzI1NiJ9.${'a'.repeat(100)}.${label}`;
+  }
 
   // 2. Valid token -> VALID
   const futureExp = Math.floor(Date.now() / 1000) + 86400;
   await withMocks(
     {
-      token: 'VALID-TOKEN',
+      token: makeJwtToken('valid'),
       verifyResult: { hwid: 'DEMO-HWID', exp: futureExp, features: ['hana', 'knowledge-base'], plan: 'pro' }
     },
     async (lm) => {
@@ -98,7 +110,7 @@ console.log('license manager tests\n');
   const pastExp = Math.floor(Date.now() / 1000) - 86400;
   await withMocks(
     {
-      token: 'EXPIRED-TOKEN',
+      token: makeJwtToken('expired'),
       verifyResult: { hwid: 'DEMO-HWID', exp: pastExp, features: ['hana', 'knowledge-base'], plan: 'pro' }
     },
     async (lm) => {
@@ -117,7 +129,7 @@ console.log('license manager tests\n');
   // 4. Invalid signature -> INVALID (server must exit)
   await withMocks(
     {
-      token: 'BAD-TOKEN',
+      token: makeJwtToken('bad'),
       verifyError: new Error('invalid signature')
     },
     async (lm) => {
@@ -137,7 +149,7 @@ console.log('license manager tests\n');
   // 5. HWID mismatch -> INVALID
   await withMocks(
     {
-      token: 'HWID-TOKEN',
+      token: makeJwtToken('hwid'),
       verifyResult: { hwid: 'OTHER-HWID', exp: futureExp, features: ['hana'], plan: 'standard' }
     },
     async (lm) => {

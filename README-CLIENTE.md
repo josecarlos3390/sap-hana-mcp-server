@@ -6,7 +6,7 @@ Este paquete contiene el Model Context Protocol (MCP) server para SAP HANA y SAP
 
 - Windows 10/11 o Windows Server 2019+ (x64)
 - Acceso de red al servidor SAP HANA
-- Licencia activa generada con el menú de licencias incluido (ver más abajo)
+- **Licencia activa** generada con el menú de licencias incluido (ver más abajo). El servidor no arranca sin una licencia válida.
 
 > No es necesario tener Node.js instalado: el ejecutable incluye su propio runtime.
 
@@ -112,6 +112,10 @@ hana-mcp-server.exe --license-info
 ```
 
 Esto es útil si querés incluir la activación dentro de un script de instalación.
+
+### Licencias de evaluación (demo)
+
+Si necesitás probar el MCP antes de comprar, solicitale al vendor una **licencia demo**. Se genera como cualquier otra licencia pero con una duración corta (por ejemplo, 7 días). Una vez vencida, el servidor no arranca hasta renovarla; no hay período de prueba automático.
 
 ---
 

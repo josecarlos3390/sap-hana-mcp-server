@@ -6,7 +6,8 @@
  *     against a license server (HANA_LICENSE_SERVER_URL).
  *  2. Legacy signed JWT token validated locally with the bundled public key.
  *
- * If no license is provided, the server runs in demo mode for 7 days.
+ * A valid license is required to start the server. Demo/trial periods must be
+ * issued explicitly as 7-day (or any-day) license keys from the license server.
  */
 
 const fs = require('fs');
@@ -20,7 +21,6 @@ const { redactSecrets } = require('../utils/sensitive-redact');
 const PUBLIC_KEY_PATH = path.join(__dirname, 'public-key.pem');
 const LICENSE_FILE = path.join(process.cwd(), '.hana-license');
 const LICENSE_CACHE_FILE = path.join(process.cwd(), '.hana-license-cache.json');
-const DEMO_DAYS = 7;
 
 class LicenseManager {
   constructor() {
@@ -156,17 +156,14 @@ class LicenseManager {
     const licenseKey = this.getLicenseToken();
     const onlineUrl = process.env.HANA_LICENSE_SERVER_URL;
 
-    // If no license token, enter demo mode
+    // A valid license is required; demo/trial periods must be issued explicitly
+    // as license keys from the license server.
     if (!licenseKey) {
-      const demoExpiry = new Date();
-      demoExpiry.setDate(demoExpiry.getDate() + DEMO_DAYS);
-      this.status = 'DEMO';
-      this.details.plan = 'trial';
-      this.details.exp = Math.floor(demoExpiry.getTime() / 1000);
-      this.details.features = ['hana'];
-      this.details.message = `No license found. Running in demo mode until ${demoExpiry.toISOString()}`;
-      logger.warn(this.details.message);
-      return this.getStatus();
+      this.status = 'INVALID';
+      this.details.error = 'No license found';
+      this.details.message = 'No license found. Please activate a license using the license menu.';
+      logger.error(this.details.message);
+      throw new Error(this.details.message);
     }
 
     // Legacy JWT token: validate locally
@@ -267,9 +264,6 @@ class LicenseManager {
   }
 
   hasFeature(feature) {
-    if (this.status === 'DEMO') {
-      return feature === 'hana';
-    }
     if (this.status === 'EXPIRED') {
       // Offline mode: keep local knowledge base readable
       return feature === 'knowledge-base';
@@ -278,7 +272,7 @@ class LicenseManager {
   }
 
   isValid() {
-    return this.status === 'VALID' || this.status === 'DEMO';
+    return this.status === 'VALID';
   }
 
   isExpired() {
