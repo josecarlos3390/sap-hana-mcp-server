@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "hana": {
+      "type": "stdio",
+      "timeout": 600,
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\hana-mcp-client\\hana-mcp-server.js"
+      ],
+      "env": {
+        "HANA_LICENSE_KEY": "<token-jwt-generado-por-el-vendor>",
+        "HANA_LICENSE_SERVER_URL": "https://tu-app.railway.app/api/license/validate",
+        "HANA_KB_REMOTE_URL": "https://tu-app.railway.app/api/kb",
+        "HANA_LICENSE_PRODUCT_CODE": "hana-b1",
+        "HANA_HOST": "<host-hana>",
+        "HANA_PORT": "30015",
+        "HANA_USER": "<usuario-hana>",
+        "HANA_PASSWORD": "<contraseña-hana>",
+        "HANA_SCHEMA": "<schema>",
+        "HANA_SSL": "false",
+        "HANA_ENCRYPT": "false",
+        "HANA_VALIDATE_CERT": "false",
+        "LOG_LEVEL": "info",
+        "ENABLE_FILE_LOGGING": "true",
+        "ENABLE_CONSOLE_LOGGING": "false"
+      }
+    }
+  }
+}

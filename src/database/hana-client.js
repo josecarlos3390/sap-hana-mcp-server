@@ -1,0 +1,214 @@
+const path = require('path');
+const fs = require('fs');
+const { createRequire } = require('module');
+const { redactSecrets } = require('../utils/sensitive-redact');
+
+function loadHanaClient() {
+  // Prefer a real filesystem copy of @sap/hana-client so that the native
+  // .node binary can be loaded. This is required when the app is bundled
+  // into an executable (nexe/pkg) where module paths live in a virtual FS.
+  const candidates = [
+    path.join(path.dirname(process.execPath), 'node_modules', '@sap', 'hana-client', 'package.json'),
+    path.join(process.cwd(), 'node_modules', '@sap', 'hana-client', 'package.json'),
+    path.resolve(__dirname, '..', '..', 'node_modules', '@sap', 'hana-client', 'package.json')
+  ];
+
+  for (const pkgJson of candidates) {
+    if (fs.existsSync(pkgJson)) {
+      try {
+        return createRequire(pkgJson)('.');
+      } catch (err) {
+        // Continue to next candidate
+      }
+    }
+  }
+
+  // Final fallback: let Node resolve the module normally. This works for
+  // standard source runs and for pkg snapshots where the native binary is
+  // packaged as an asset.
+  try {
+    return require('@sap/hana-client');
+  } catch (err) {
+    throw new Error(
+      'Could not load @sap/hana-client. Ensure node_modules/@sap/hana-client is present or the native binary is packaged correctly. (' + err.message + ')'
+    );
+  }
+}
+
+const hana = loadHanaClient();
+
+// Simple logger that doesn't interfere with JSON-RPC
+const log = (msg) => console.error(`[HANA Client] ${new Date().toISOString()}: ${msg}`);
+
+/**
+ * Create and configure a HANA client
+ * @param {Object} config - HANA connection configuration
+ * @returns {Object} HANA client wrapper
+ */
+async function createHanaClient(config) {
+  try {
+    // Create connection
+    const connection = hana.createConnection();
+    
+    // Use connection parameter building if available
+    const connectionParams = config.getConnectionParams ? 
+      config.getConnectionParams() : 
+      buildLegacyConnectionParams(config);
+    
+    // Log database type information
+    const dbType = config.getHanaDatabaseType ? config.getHanaDatabaseType() : 'single_container';
+    log(`Connecting to HANA ${dbType} database...`);
+    
+    // Connect to HANA
+    await connect(connection, connectionParams);
+    
+    log(`Successfully connected to HANA ${dbType} database`);
+    
+    // Return client wrapper with utility methods
+    return {
+      /**
+       * Execute a SQL query with optional timeout.
+       * @param {string} sql
+       * @param {Array} params
+       * @param {number} [timeoutMs] - 0 or omitted = no timeout
+       * @returns {Promise<Array>}
+       */
+      async query(sql, params = [], timeoutMs = 0) {
+        let statement;
+        let timer;
+        try {
+          statement = connection.prepare(sql);
+          const execPromise = executeStatement(statement, params);
+
+          let results;
+          if (timeoutMs > 0) {
+            const timeoutPromise = new Promise((_, reject) => {
+              timer = setTimeout(() => {
+                try { connection.cancel(); } catch (_) {}
+                const err = new Error(`Query timed out after ${timeoutMs}ms`);
+                err.code = 'QUERY_TIMEOUT';
+                err.sqlState = '57014';
+                reject(err);
+              }, timeoutMs);
+            });
+            results = await Promise.race([execPromise, timeoutPromise]);
+          } else {
+            results = await execPromise;
+          }
+
+          if (timer) clearTimeout(timer);
+          statement.drop();
+          return results;
+        } catch (error) {
+          if (timer) clearTimeout(timer);
+          try { if (statement) statement.drop(); } catch (_) {}
+          log(`Query execution error: ${redactSecrets(error.message)}`);
+          const enriched = new Error(redactSecrets(error.message));
+          enriched.sqlCode = error.code != null ? Number(error.code) : null;
+          enriched.sqlState = error.sqlState || error.sqlstate || null;
+          enriched.isTimeout = error.code === 'QUERY_TIMEOUT';
+          throw enriched;
+        }
+      },
+
+      /**
+       * Execute a SQL query that returns a single value.
+       */
+      async queryScalar(sql, params = [], timeoutMs = 0) {
+        const results = await this.query(sql, params, timeoutMs);
+        if (results.length === 0) return null;
+        const firstRow = results[0];
+        const keys = Object.keys(firstRow);
+        if (keys.length === 0) return null;
+        return firstRow[keys[0]];
+      },
+
+      /**
+       * Cancel the currently executing statement on this connection.
+       */
+      cancel() {
+        try { connection.cancel(); } catch (_) {}
+      },
+
+      /**
+       * Disconnect from HANA database.
+       */
+      async disconnect() {
+        return new Promise((resolve, reject) => {
+          connection.disconnect(err => {
+            if (err) {
+              log(`Error disconnecting from HANA: ${redactSecrets(err.message)}`);
+              reject(err);
+            } else {
+              log('Disconnected from HANA database');
+              resolve();
+            }
+          });
+        });
+      }
+    };
+  } catch (error) {
+    log(`Failed to create HANA client: ${redactSecrets(error.message)}`);
+    throw error;
+  }
+}
+
+/**
+ * Build legacy connection parameters for backward compatibility
+ */
+function buildLegacyConnectionParams(config) {
+  return {
+    serverNode: `${config.host}:${config.port}`,
+    uid: config.user,
+    pwd: config.password,
+    encrypt: config.encrypt !== false,
+    sslValidateCertificate: config.validateCert !== false,
+    ...(config.databaseName ? { databaseName: config.databaseName } : {}),
+    ...config.additionalParams
+  };
+}
+
+/**
+ * Connect to HANA database
+ * @param {Object} connection - HANA connection object
+ * @param {Object} params - Connection parameters
+ * @returns {Promise<void>}
+ */
+function connect(connection, params) {
+  return new Promise((resolve, reject) => {
+    connection.connect(params, (err) => {
+      if (err) {
+        reject(new Error(`HANA connection failed: ${redactSecrets(err.message)}`));
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * Execute a prepared statement
+ * @param {Object} statement - Prepared statement
+ * @param {Array} params - Statement parameters
+ * @returns {Promise<Array>} Query results
+ */
+function executeStatement(statement, params) {
+  return new Promise((resolve, reject) => {
+    statement.execQuery(params, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        // Convert results to array of objects
+        const rows = [];
+        while (results.next()) {
+          rows.push(results.getValues());
+        }
+        resolve(rows);
+      }
+    });
+  });
+}
+
+module.exports = {
+  createHanaClient
+};

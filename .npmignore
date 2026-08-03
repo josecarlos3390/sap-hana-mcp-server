@@ -1,0 +1,62 @@
+# Development files
+tests/
+docs/
+setup.sh
+claude_template.json
+
+# Configuration files
+*.config.json
+*config*.json
+*credential*.json
+*secret*.json
+*password*.json
+*key*.json
+
+# Environment files
+.env*
+*.env
+
+# Logs
+*.log
+logs/
+
+# Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Temporary files
+*.tmp
+*.temp
+*backup*
+*POC*
+
+# Licensing / vendor-only scripts (do not ship to customers)
+private-key.pem
+scripts/generate-license-keys.js
+scripts/generate-license-token.js
+scripts/mock-cloud-server.js
+venv-sap/
+.hana-license
+.hana-license-cache.json
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Package manager files
+package-lock.json
+yarn.lock 

@@ -1,0 +1,78 @@
+# Dependency directories
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# Local / sample semantics (do not commit tenant-specific metadata)
+config/finance-fi-ca-semantics.json
+
+# Security - Credential files
+*config*.json
+*credential*.json
+*secret*.json
+*password*.json
+*key*.json
+
+# Build output
+dist/
+build/
+coverage/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Licensing / secrets
+private-key.pem
+.hana-license
+.hana-license-cache.json
+.mcp.json
+test-license.txt
+scripts/test-kb-input.jsonl
+venv-sap/
+
+# Temporary / captured files
+bp-balance-capture-*.txt
+bp-balance-query-hash-*.sql
+statement-*.sql
+sap-note-*
+note-*-endpoint-*.txt
+monitorear.txt
+hana-mcp-server-test.exe
+
+*claude_con*
+*POC
+*backup*
+image.png
+.qod*
+hana-mcp-ui/bun.lock
+hana-mcp-ui/bun.lockb
+Agent*
+!AGENTS.md
+.cur*

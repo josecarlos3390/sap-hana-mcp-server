@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "hana": {
+      "type": "local",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "D:\\ProyectosPython\\sap-hana-mcp-server\\hana-mcp-server.js"
+      ],
+      "enabled": true,
+      "env": {
+        "HANA_HOST": "hanaroda25.gruporoda.com",
+        "HANA_PORT": "30015",
+        "HANA_USER": "B1ADMIN",
+        "HANA_PASSWORD": "RodaHana2016!.",
+        "HANA_SCHEMA": "RETAIL",
+        "HANA_CONNECTION_TYPE": "auto",
+        "HANA_SSL": "false",
+        "HANA_ENCRYPT": "false",
+        "HANA_VALIDATE_CERT": "false",
+        "LOG_LEVEL": "info",
+        "ENABLE_FILE_LOGGING": "true",
+        "ENABLE_CONSOLE_LOGGING": "false"
+      }
+    }
+  }
+}

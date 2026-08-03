@@ -1,0 +1,102 @@
+{
+  "name": "hana-mcp-server",
+  "version": "0.3.1",
+  "description": "SAP HANA MCP server — Model Context Protocol server for SAP HANA and HANA Cloud. Use with Claude Code, VS Code, and other AI agents.",
+  "main": "hana-mcp-server.js",
+  "bin": {
+    "hana-mcp-server": "hana-mcp-server.js"
+  },
+  "scripts": {
+    "start": "node hana-mcp-server.js",
+    "start:http": "node src/server/http-index.js",
+    "dev": "nodemon hana-mcp-server.js",
+    "test": "node tests/automated/test-config-limits.js && node tests/automated/test-config-all-env.js && node tests/automated/test-resources-uri.js && node tests/automated/test-formatters-query.js && node tests/automated/test-sensitive-redact.js && node tests/automated/test-metadata-catalog.js && node tests/automated/test-snapshot-store.js && node tests/automated/test-semantics-loader.js && node tests/automated/test-semantics-url-env.js && node tests/automated/test-query-runner-mocked.js && node tests/automated/test-schema-table-tools-mocked.js && node tests/automated/test-query-tools-mocked.js && node tests/automated/test-query-runner-unit.js && node tests/automated/test-http-origin-env.js && node tests/automated/test-http-auth-env.js && node tests/automated/test-mcp-inspector.js && node tests/automated/test-new-features.js && node tests/automated/test-dml-restrictions.js && node tests/automated/test-connection-pool.js && node tests/automated/test-health-tools-mocked.js && node tests/automated/test-offline-license-mode.js && node tests/automated/test-license-manager.js",
+    "test:live": "node tests/automated/test-all-tools.js",
+    "test:new": "node tests/automated/test-new-features.js",
+    "test:all-tools": "node tests/automated/test-all-tools.js",
+    "test:query-once": "node tests/automated/run-query-once.js",
+    "build:exe": "powershell -ExecutionPolicy Bypass -File scripts/build-exe.ps1",
+    "license-menu": "node scripts/license-menu.js"
+  },
+  "keywords": [
+    "sap",
+    "hana",
+    "sap-hana",
+    "hana-mcp",
+    "hana-mcp-server",
+    "claude-code",
+    "sap-mcp",
+    "hatrigt",
+    "hana-cloud",
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "btp",
+    "database",
+    "ai",
+    "claude",
+    "vs-code",
+    "enterprise",
+    "sql",
+    "enterprise-ready-mcp-server",
+    "enterprise",
+    "enterprise-hana-mcp"
+  ],
+  "author": {
+    "name": "HANA MCP Server Contributors",
+    "email": "support@hana-mcp-server.com"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "pkg": {
+    "scripts": [
+      "hana-mcp-server.js",
+      "src/**/*.js",
+      "node_modules/axios/dist/node/axios.cjs"
+    ],
+    "assets": [
+      "src/licensing/public-key.pem",
+      "docs/kb/**/*",
+      "node_modules/@sap/hana-client/prebuilt/ntamd64-msvc2022/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hatrigt/hana-mcp-server.git"
+  },
+  "homepage": "https://github.com/hatrigt/hana-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/hatrigt/hana-mcp-server/issues"
+  },
+  "readme": "README.md",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "dependencies": {
+    "@sap/hana-client": "^2.17.22",
+    "axios": "^1.12.2",
+    "dotenv": "^16.6.1",
+    "jose": "^5.9.6",
+    "jsonwebtoken": "^9.0.3",
+    "node-machine-id": "^1.1.12"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "pkg": "^5.8.1",
+    "ssh2": "^1.17.0"
+  },
+  "files": [
+    "hana-mcp-server.js",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ]
+}
