@@ -14,6 +14,8 @@
     docs/kb/                     # Local knowledge-base cases
     public-key.pem               # License public key (also embedded)
     LICENSE, .env.example, ...
+    scripts/license-menu.js      # Interactive license menu
+    license-menu.bat / .ps1      # Launchers for the license menu
     scripts/update-client.ps1    # Updater helpers for hana_apply_update
     scripts/update-client.sh
 
@@ -66,7 +68,34 @@ Copy-Relative '.env.example' '.env.example'
 Copy-Relative 'mcp.json.example' 'mcp.json.example'
 Copy-Relative 'README-CLIENTE.md' 'README-CLIENTE.md'
 Copy-Relative 'docs\distribucion-repo-README.md' 'README.md'
+Copy-Relative 'scripts\license-menu.js' 'scripts\license-menu.js'
 Copy-Relative 'scripts\update-client.ps1' 'scripts\update-client.ps1'
+
+# Generate license-menu launchers next to the .exe so the client can open the
+# license menu with a double click without needing Node.js installed.
+$batPath = Join-Path $outDir 'license-menu.bat'
+@'
+@echo off
+REM Lanzador del menu de licencias para el paquete ejecutable.
+REM Se ubica junto a hana-mcp-server.exe.
+
+cd /d "%~dp0"
+hana-mcp-server.exe --license-menu
+if errorlevel 1 pause
+'@ | Set-Content -Path $batPath -Encoding ASCII -NoNewline
+
+$ps1Path = Join-Path $outDir 'license-menu.ps1'
+@'
+#!/usr/bin/env pwsh
+# Lanzador del menu de licencias para el paquete ejecutable.
+# Se ubica junto a hana-mcp-server.exe.
+
+$ErrorActionPreference = 'Stop'
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$exePath = Join-Path $scriptDir 'hana-mcp-server.exe'
+
+& $exePath --license-menu
+'@ | Set-Content -Path $ps1Path -Encoding UTF8 -NoNewline
 Copy-Relative 'scripts\update-client.sh' 'scripts\update-client.sh'
 Copy-Relative 'scripts\start.bat' 'start.bat'
 

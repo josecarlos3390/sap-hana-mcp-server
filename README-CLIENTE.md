@@ -6,7 +6,7 @@ Este paquete contiene el Model Context Protocol (MCP) server para SAP HANA y SAP
 
 - Windows 10/11 o Windows Server 2019+ (x64)
 - Acceso de red al servidor SAP HANA
-- Token de licencia JWT proporcionado por el vendor (si aplica)
+- Licencia activa generada con el menú de licencias incluido (ver más abajo)
 
 > No es necesario tener Node.js instalado: el ejecutable incluye su propio runtime.
 
@@ -35,13 +35,11 @@ Este paquete incluye un menú interactivo para activar y transferir licencias si
 
 ### Abrir el menú de licencias
 
-Ejecuta en consola:
+Haz doble clic en `license-menu.bat` o ejecuta en consola:
 
 ```bash
-node scripts/license-menu.js
+hana-mcp-server.exe --license-menu
 ```
-
-O haz doble clic en `license-menu.bat`.
 
 ### Opciones del menú
 
@@ -97,17 +95,20 @@ Si cambias de servidor o máquina y quieres mover tu licencia:
 
 ### Modo consola (sin menú interactivo)
 
-El script `license-menu.js` también acepta argumentos para automatizar el proceso:
+El mismo ejecutable acepta argumentos para automatizar la gestión de licencias sin abrir el menú interactivo:
 
 ```bash
 # Ver el Hardware ID
-node scripts/license-menu.js --show-hwid
+hana-mcp-server.exe --show-hwid
 
 # Canjear un voucher directamente
-node scripts/license-menu.js --redeem ABCD-EFGH-IJKL-MNOP
+hana-mcp-server.exe --redeem ABCD-EFGH-IJKL-MNOP
 
 # Activar una licencia directa
-node scripts/license-menu.js --activate WXYZ-1234-ABCD-5678
+hana-mcp-server.exe --activate WXYZ-1234-ABCD-5678
+
+# Ver información de la licencia guardada
+hana-mcp-server.exe --license-info
 ```
 
 Esto es útil si querés incluir la activación dentro de un script de instalación.
@@ -162,8 +163,11 @@ También podés forzar una sincronización manual reiniciando el servidor.
 - `docs/kb/index.md` — índice de la KB.
 - `public-key.pem` — clave pública para validar licencias.
 - `.env.example` — plantilla de configuración.
+- `.hana-license` — archivo donde se guarda la licencia activa (se crea al activar).
 - `mcp.json.example` — plantilla de configuración MCP.
-- `start.bat` — lanzador para Windows.
+- `start.bat` — lanzador del servidor MCP para Windows.
+- `license-menu.bat` / `license-menu.ps1` — lanzadores del menú de licencias.
+- `scripts/license-menu.js` — lógica del menú de licencias (usado internamente por el .exe).
 - `scripts/update-client.ps1` / `update-client.sh` — helpers de actualización.
 - `node_modules/@sap/hana-client/` — driver nativo de SAP HANA necesario en runtime.
 
