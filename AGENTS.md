@@ -35,6 +35,10 @@ Get-Content ".env" | ForEach-Object {
 
 Variables relevantes: `SUSE_HOST`, `SUSE_USER`, `SUSE_PASSWORD`, `SAP_USER`, `SAP_PASS`, `SAP_NOTE`.
 
+> **Nota (2026-08-04):** actualmente el `.env` de este workspace **no contiene** `SUSE_*`; los scripts de SUSE usan valores hardcodeados. Para seguir el patrón correcto, agregar `SUSE_HOST`, `SUSE_USER` y `SUSE_PASSWORD` al `.env` y reemplazar los defaults en `scripts/suse-*.js`.
+>
+> También revisar que `HANA_HOST` en `.env` coincida con el host real (hoy el `.env` tiene `hana.test.com` mientras que la config del MCP usa `hanaroda25.gruporoda.com`).
+
 ---
 
 ## 2. Capacidad 1 — HANA (MCP `hana`)
@@ -140,8 +144,9 @@ Alternativa local: `plink.exe` (PuTTY, en `D:\Program Files\PuTTY`) u `ssh.exe` 
 - **KBA/Nota SAP 3733425** — *Service Layer worker process termination due to heap corruption under high load*.
   - Síntoma: `malloc_consolidate(): invalid chunk size`, `double free or corruption (!prev)`, `corrupted size vs. prev_size in fastbins`, `httpd` child `exit signal Aborted (6)` con coredumps.
   - Causa: condición de carrera al cerrar workers; doble `free()` en `CAsyncLogger::~CAsyncLogger`.
-  - Fix: en `httpd-b1s-lb-member-common.conf`, `StartServers/MinSpareServers/MaxSpareServers/MaxRequestWorkers` → `8` (antes `1/1/2/24`), mantener `MaxConnectionsPerChild 1024`; reiniciar Service Layer.
-  - Estado despliegue: config confirmada en estado problemático (2026-07-09); fix **pendiente de aplicar**.
+  - Fix: en `httpd-b1s-lb-member-common.conf`, `MaxRequestWorkers` → `8` (antes `24`), mantener `MaxConnectionsPerChild 1024`; reiniciar Service Layer.
+  - Ajuste adicional (2026-08-04): `MinSpareServers` → `4` y `MaxSpareServers` → `6` (eran `8`/`8`). Con `MinSpareServers=MaxSpareServers=MaxRequestWorkers=8`, Apache prefork no podía mantener spares y atender requests al mismo tiempo, generando warnings constantes `AH00161: server reached MaxRequestWorkers`. Se dejó `MaxRequestWorkers=8` para respetar la KBA.
+  - Estado despliegue: fix aplicado y Service Layer reiniciado; login y consultas OData funcionando en `RETAIL` y `RETAIL_QA5`.
   - Relacionadas: KBA 3157498, KBA 3157607, Notas SAP 2418476, 3027326.
 
 ---
