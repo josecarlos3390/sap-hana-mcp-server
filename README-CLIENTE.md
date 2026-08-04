@@ -343,7 +343,7 @@ O desde `first-run.bat` / menú de licencias seleccionando **6. Verificar/instal
 - `docs/kb/index.md` — índice de la KB.
 - `public-key.pem` — clave pública para validar licencias.
 - `.env.example` — plantilla de configuración.
-- `.hana-license` — archivo donde se guarda la licencia activa (se crea al activar).
+- `.hana-license` — archivo donde se guarda la licencia activa (se crea al activar). Cuando usás el paquete ejecutable, se guarda automáticamente junto al `.exe`. En desarrollo (source), se guarda en el directorio de trabajo actual.
 - `mcp.json.example` — plantilla de configuración MCP.
 - `start.bat` — lanzador del servidor MCP para Windows.
 - `first-run.bat` / `first-run.ps1` — lanzadores del asistente de configuración inicial.

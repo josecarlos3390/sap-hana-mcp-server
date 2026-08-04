@@ -584,10 +584,7 @@ async function runSetupWizard(reader) {
     ? path.dirname(process.execPath)
     : await askWithDefault(reader, 'Directorio de instalación', 'C:\\hana-mcp-client');
 
-  const licenseFile = path.join(installDir, '.hana-license');
-
   const env = {
-    HANA_LICENSE_FILE: licenseFile,
     HANA_LICENSE_SERVER_URL: SERVER_URL,
     HANA_LICENSE_PRODUCT_CODE: PRODUCT_CODE,
     HANA_KB_REMOTE_URL: `${SERVER_URL}/api/kb`,
@@ -604,6 +601,13 @@ async function runSetupWizard(reader) {
     ENABLE_FILE_LOGGING: 'true',
     ENABLE_CONSOLE_LOGGING: 'false'
   };
+
+  // When packaged as .exe, pin the license file next to the binary.
+  // In development leave HANA_LICENSE_FILE unset so the server uses
+  // process.cwd()/.hana-license.
+  if (process.pkg) {
+    env.HANA_LICENSE_FILE = path.join(installDir, '.hana-license');
+  }
 
   // Write .env
   const envLines = [

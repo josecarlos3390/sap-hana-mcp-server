@@ -77,6 +77,7 @@ hana-mcp-server-exe/
 │   └── opencode-config.json.example
 ├── public-key.pem               # Clave pública de licencias
 ├── .env.example                 # Plantilla de configuración
+├── .hana-license                # Licencia activa (se crea al activar; junto al .exe)
 ├── mcp.json.example             # Plantilla MCP genérica
 ├── README-CLIENTE.md            # Guía del cliente
 ├── LICENSE
